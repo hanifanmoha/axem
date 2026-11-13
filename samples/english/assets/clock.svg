@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Eight o'clock">
+  <circle cx="120" cy="120" r="104" fill="#fffdf5" stroke="#17211a" stroke-width="8"/>
+  <circle cx="120" cy="32" r="4" fill="#17211a"/>
+  <circle cx="208" cy="120" r="4" fill="#17211a"/>
+  <circle cx="120" cy="208" r="4" fill="#17211a"/>
+  <circle cx="32" cy="120" r="4" fill="#17211a"/>
+  <path d="M120 120V42M120 120L65 148" stroke="#17211a" stroke-linecap="round" stroke-width="10"/>
+  <circle cx="120" cy="120" r="9" fill="#49704d"/>
+</svg>
