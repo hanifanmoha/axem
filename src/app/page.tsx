@@ -1,139 +1,198 @@
 "use client";
 
-import { FormEvent, ReactNode, useState } from "react";
-import {
-  BundleDocument,
-  Choice,
-  Question,
-  parseBundleDocument,
-} from "@/lib/bundle";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { BundleDocument, parseBundleDocument } from "@/lib/bundle";
+import { Quiz } from "@/components/Quiz";
 
-function Markdown({ value }: { value: string }): ReactNode {
-  const parts = value.split(/(!\[[^\]]*]\([^)]+\))/g);
 
-  return parts.map((part, index) => {
-    const image = part.match(/^!\[([^\]]*)]\(([^)]+)\)$/);
-    if (image) {
-      return <img key={index} src={image[2]} alt={image[1]} />;
-    }
-
-    return part.split("\n").map((line, lineIndex) => (
-      <span key={`${index}-${lineIndex}`}>
-        {line}
-        {lineIndex < part.split("\n").length - 1 && <br />}
-      </span>
-    ));
-  });
+function encodeSourceUrl(sourceUrl: string) {
+  const bytes = new TextEncoder().encode(sourceUrl);
+  return btoa(String.fromCharCode(...bytes));
 }
 
-function Answer({ choice, revealed }: { choice: Choice; revealed: boolean }) {
-  const [selected, setSelected] = useState(false);
-  const className = revealed
-    ? choice.correct
-      ? "answer correct"
-      : selected
-        ? "answer incorrect"
-        : "answer"
-    : selected
-      ? "answer selected"
-      : "answer";
-
-  return (
-    <button className={className} onClick={() => setSelected(true)} type="button">
-      <Markdown value={choice.text} />
-    </button>
+function decodeSourceUrl(encodedSourceUrl: string) {
+  const bytes = Uint8Array.from(atob(encodedSourceUrl), (character) =>
+    character.charCodeAt(0),
   );
+  return new TextDecoder().decode(bytes);
 }
 
-function Quiz({ title, questions }: { title: string; questions: Question[] }) {
-  const [revealed, setRevealed] = useState(false);
-
-  return (
-    <section>
-      <h1>{title}</h1>
-      <p className="summary">{questions.length} questions</p>
-      {questions.map((question, index) => (
-        <article className="question" key={`${question.title}-${index}`}>
-          <h2>{index + 1}. {question.title}</h2>
-          <div className="prompt"><Markdown value={question.prompt} /></div>
-          <div className="answers">
-            {question.choices.map((choice, choiceIndex) => (
-              <Answer choice={choice} revealed={revealed} key={choiceIndex} />
-            ))}
-          </div>
-          {revealed && question.explanation && (
-            <p className="explanation"><strong>Explanation:</strong> <Markdown value={question.explanation} /></p>
-          )}
-        </article>
-      ))}
-      <button className="reveal" type="button" onClick={() => setRevealed(true)}>
-        Reveal answers
-      </button>
-    </section>
-  );
-}
+type Navigation = "push" | "none";
 
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [source, setSource] = useState<string>();
   const [document, setDocument] = useState<BundleDocument>();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
+  const [canGoBack, setCanGoBack] = useState(false);
+  const requestId = useRef(0);
 
-  async function load(sourceUrl: string) {
+  const load = useCallback(async (sourceUrl: string, navigation: Navigation) => {
+    const id = ++requestId.current;
+    setLoading(true);
     setError(undefined);
-    setDocument(undefined);
+
     try {
       const response = await fetch(sourceUrl);
-      if (!response.ok) throw new Error(`Request failed (${response.status})`);
-      setDocument(parseBundleDocument(await response.text(), response.url));
+      if (!response.ok) throw new Error(`The source responded with ${response.status}.`);
+      const parsed = parseBundleDocument(await response.text(), response.url || sourceUrl);
+      if (id !== requestId.current) return;
+
+      setDocument(parsed);
+      setSource(sourceUrl);
+      setUrl(sourceUrl);
+
+      if (navigation === "push") {
+        const depth = (window.history.state?.depth ?? 0) + 1;
+        const params = new URLSearchParams({ _s: encodeSourceUrl(sourceUrl) });
+        window.history.pushState({ depth }, "", `?${params}`);
+      }
+      setCanGoBack((window.history.state?.depth ?? 0) > 0);
+      window.scrollTo({ top: 0 });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to load bundle.");
+      if (id !== requestId.current) return;
+      setError(
+        reason instanceof TypeError
+          ? "Could not reach that URL. Check the address, and that the host allows cross-origin requests."
+          : reason instanceof Error
+            ? reason.message
+            : "Unable to load the bundle.",
+      );
+    } finally {
+      if (id === requestId.current) setLoading(false);
     }
-  }
+  }, []);
+
+  const restore = useCallback(() => {
+    const encoded = new URLSearchParams(window.location.search).get("_s");
+    setCanGoBack((window.history.state?.depth ?? 0) > 0);
+
+    if (!encoded) {
+      requestId.current++;
+      setDocument(undefined);
+      setSource(undefined);
+      setError(undefined);
+      setLoading(false);
+      setUrl("");
+      return;
+    }
+
+    try {
+      void load(decodeSourceUrl(encoded), "none");
+    } catch {
+      setError("The _s parameter does not contain a valid Base64 URL.");
+    }
+  }, [load]);
+
+  useEffect(() => {
+    restore();
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, [restore]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void load(url);
+    const value = url.trim();
+    if (value) void load(value, "push");
   }
 
   return (
-    <main>
-      <header>
-        <p className="eyebrow">AXEM</p>
-        <h1>Study from any compatible bundle.</h1>
-        <form onSubmit={submit}>
-          <input
-            aria-label="Bundle URL"
-            onChange={(event) => setUrl(event.target.value)}
-            placeholder="https://raw.githubusercontent.com/owner/repo/main/samples/index.md"
-            type="url"
-            value={url}
-          />
-          <button type="submit">Load</button>
-        </form>
-        <p className="hint">Use a raw GitHub URL or another CORS-enabled Markdown source.</p>
+    <>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <button
+            className="brand"
+            type="button"
+            aria-label="Axem home"
+            onClick={() => {
+              window.history.pushState({ depth: 0 }, "", window.location.pathname);
+              restore();
+            }}
+          >
+            <span className="brand-mark" aria-hidden="true" />
+            Axem
+          </button>
+          <form onSubmit={submit} className="source-form">
+            <input
+              aria-label="Bundle URL"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder="Paste a bundle URL (https://…)"
+              value={url}
+            />
+            <button className="button primary" type="submit" disabled={loading || !url.trim()}>
+              {loading ? "Loading" : "Load"}
+            </button>
+          </form>
+        </div>
       </header>
 
-      {error && <p className="error">{error}</p>}
-      {document?.kind === "index" && (
-        <section>
-          <h2>{document.title}</h2>
-          {document.links.length ? (
-            <nav className="bundle-links">
-              {document.links.map((link) => (
-                <button key={link.url} type="button" onClick={() => {
-                  setUrl(link.url);
-                  void load(link.url);
-                }}>
-                  {link.label}
-                </button>
-              ))}
-            </nav>
-          ) : (
-            <p>No bundle links were found in this document.</p>
-          )}
-        </section>
-      )}
-      {document?.kind === "quiz" && <Quiz title={document.title} questions={document.questions} />}
-    </main>
+      <main>
+        {canGoBack && (
+          <button className="back" type="button" onClick={() => window.history.back()}>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back
+          </button>
+        )}
+
+        {error && (
+          <div className="notice error" role="alert">
+            <strong>Couldn’t load that bundle</strong>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {!document && !error && !loading && (
+          <section className="welcome">
+            <h1>Practice from any bundle.</h1>
+            <p>
+              Paste the URL of a Markdown quiz bundle, such as one hosted on GitHub. Axem fetches it
+              and turns it into a focused practice session.
+            </p>
+            <Link className="button" href="/docs">
+              Read the documentation
+            </Link>
+          </section>
+        )}
+
+        {loading && !document && <p className="loading">Loading bundle…</p>}
+
+        {document?.kind === "index" && (
+          <section className="index" key={source}>
+            <h1>{document.title}</h1>
+            {document.links.length ? (
+              <nav className="cards" aria-label={document.title}>
+                {document.links.map((link, index) => (
+                  <button
+                    key={link.url}
+                    type="button"
+                    className="card"
+                    style={{ "--i": index } as React.CSSProperties}
+                    onClick={() => void load(link.url, "push")}
+                  >
+                    <span>{link.label}</span>
+                    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                      <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                ))}
+              </nav>
+            ) : (
+              <p className="notice">No bundle links were found in this document.</p>
+            )}
+          </section>
+        )}
+
+        {document?.kind === "quiz" && (
+          <Quiz key={source} title={document.title} questions={document.questions} />
+        )}
+      </main>
+    </>
   );
 }
