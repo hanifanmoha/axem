@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SettingsMenu } from "./SettingsMenu";
 
 export function Topbar({ children }: { children?: ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export function Topbar({ children }: { children?: ReactNode }) {
           Axem
         </Link>
         {children}
+        <SettingsMenu />
       </div>
     </header>
   );

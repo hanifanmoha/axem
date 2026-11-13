@@ -19,8 +19,28 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+:root[data-theme="light"] { color-scheme: light; }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0a09;
+  --surface: #171412;
+  --ink: #fafaf9;
+  --muted: #a8a29e;
+  --line: #292524;
+  --line-strong: #44403c;
+  --focus: #818cf8;
+  --ok: #6ee7a7;
+  --ok-bg: #0f2119;
+  --ok-line: #1f5a3c;
+  --bad: #fda4a0;
+  --bad-bg: #2a1311;
+  --bad-line: #6b2a25;
+  --shadow: none;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg: #0c0a09;
     --surface: #171412;
     --ink: #fafaf9;
@@ -81,6 +101,7 @@ kbd {
 
 .button { text-decoration: none; display: inline-block; }
 .docs-nav { margin-left: auto; }
+.docs-nav + .settings { margin-left: 0; }
 
 /* Documentation */
 .docs article { display: block; }
@@ -306,3 +327,17 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
 .intro-meta { color: var(--muted); font-variant-numeric: tabular-nums; }
 .stat.time { color: var(--muted); font-variant-numeric: tabular-nums; }
 .clock { font-variant-numeric: tabular-nums; margin-right: 12px; }
+
+/* Settings */
+.settings { margin-left: auto; position: relative; }
+.settings:not(:last-child) { margin-left: 0; }
+.icon-button { align-items: center; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; color: var(--ink); cursor: pointer; display: inline-flex; height: 38px; justify-content: center; transition: transform 160ms var(--ease-out), background-color 150ms ease; width: 38px; }
+.icon-button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .icon-button:hover { background: var(--line); } }
+.popover { animation: pop 150ms var(--ease-out); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 8px 30px rgb(0 0 0 / 0.14); min-width: 220px; padding: 14px; position: absolute; right: 0; top: calc(100% + 8px); transform-origin: top right; z-index: 20; }
+.popover h2 { color: var(--muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; margin: 0 0 10px; text-transform: uppercase; }
+.segmented { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; display: grid; gap: 2px; grid-template-columns: 1fr 1fr; padding: 2px; }
+.segmented button { background: none; border: 0; border-radius: 8px; color: var(--muted); cursor: pointer; font: inherit; font-size: 0.9rem; font-weight: 550; padding: 7px 10px; transition: background-color 150ms ease, color 150ms ease; }
+.segmented button[aria-checked="true"] { background: var(--surface); box-shadow: 0 0 0 1px var(--line-strong); color: var(--ink); }
+@keyframes pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .popover { animation: none; } }

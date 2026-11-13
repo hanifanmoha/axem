@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SettingsMenu } from "@/components/SettingsMenu";
 import { encodeSource } from "@/lib/source";
 
 export const metadata: Metadata = {
@@ -132,12 +133,13 @@ export default function DocsPage() {
               Open the app
             </Link>
           </nav>
+          <SettingsMenu />
         </div>
       </header>
 
       <main className="docs">
         <article>
-          <h1>Axem documentation</h1>
+          <h1>Give this docs url to your LLM</h1>
           <p className="lede">
             Axem is a renderer for exam and quiz practice. It does not store content itself.
             Pages and quizzes live in plain Markdown files that you host anywhere (for example, a

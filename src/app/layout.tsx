@@ -16,7 +16,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("axem:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         {children}
         <RegisterSW />
