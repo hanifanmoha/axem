@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { saveLastSource } from "@/lib/lastSource";
 import { encodeSource } from "@/lib/source";
 
 export function SourceForm() {
@@ -11,7 +12,10 @@ export function SourceForm() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const value = url.trim();
-    if (value) router.push(`/${encodeSource(value)}`);
+    if (!value) return;
+    const encoded = encodeSource(value);
+    saveLastSource(encoded);
+    router.push(`/${encoded}`);
   }
 
   return (

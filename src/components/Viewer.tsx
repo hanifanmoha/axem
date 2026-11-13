@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BundleDocument, parseBundleDocument } from "@/lib/bundle";
-import { saveLastSource } from "@/lib/lastSource";
 import { decodeSource } from "@/lib/source";
 import { Markdown } from "@/components/Markdown";
 import { Quiz } from "@/components/Quiz";
@@ -36,9 +35,7 @@ export function Viewer({ encoded }: { encoded: string }) {
         return parseBundleDocument(await response.text());
       })
       .then((document) => {
-        if (!active) return;
-        saveLastSource(encoded);
-        setLoaded({ url, document });
+        if (active) setLoaded({ url, document });
       })
       .catch((reason: unknown) => {
         if (!active) return;
@@ -56,7 +53,7 @@ export function Viewer({ encoded }: { encoded: string }) {
     return () => {
       active = false;
     };
-  }, [url, encoded]);
+  }, [url]);
 
   const current = loaded?.url === url ? loaded : undefined;
   const error = resolved.error ?? current?.error;
