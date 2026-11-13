@@ -180,7 +180,7 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
 
 .welcome { display: grid; gap: 16px; justify-items: start; padding-top: 12vh; }
 .welcome p { color: var(--muted); font-size: 1.05rem; max-width: 52ch; }
-.welcome .button { margin-top: 8px; }
+.welcome-actions { margin-top: 8px; }
 .loading { color: var(--muted); }
 
 .notice { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--muted); padding: 16px 18px; }
@@ -341,3 +341,4 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
 .segmented button[aria-checked="true"] { background: var(--surface); box-shadow: 0 0 0 1px var(--line-strong); color: var(--ink); }
 @keyframes pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .popover { animation: none; } }
+.welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; }
