@@ -1,72 +1,122 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { encodeSource } from "@/lib/source";
 
 export const metadata: Metadata = {
   title: "Documentation – Axem",
   description:
-    "How to write a quiz bundle for Axem: Markdown index files, quiz files, multiple-choice questions, images, explanations, and how to host and share a bundle.",
+    "How to write a bundle for Axem: Markdown pages and links, quiz files with multiple-choice problems, math formulas, images, explanations, and how to host and share a bundle.",
 };
 
 const SAMPLE_URL =
   "https://raw.githubusercontent.com/hanifanmoha/axem/main/samples/index.md";
-const sampleLink = `/?_s=${encodeURIComponent(Buffer.from(SAMPLE_URL).toString("base64"))}`;
+const sampleLink = `/${encodeSource(SAMPLE_URL)}`;
 
-const structureExample = `my-quiz-repo/
-├── index.md                  <- root index (the URL you give to Axem)
+const structureExample = `my-bundle/
+├── index.md                  <- root page (the URL you give to Axem)
 ├── english/
-│   ├── index.md              <- sub-index
+│   ├── index.md              <- sub-page
+│   ├── materi-tenses.md      <- theory page
 │   ├── tenses.quiz.md        <- quiz file
-│   ├── verbs/
-│   │   ├── index.md
-│   │   └── irregular.quiz.md
 │   └── assets/
-│       └── clock.svg         <- image used by a quiz
+│       └── clock.svg         <- image used by a page or quiz
 └── math/
     ├── index.md
     └── geometry.quiz.md`;
 
-const indexExample = `# Exam Preparation
+const pageExample = `# English
 
-- [English](english/index.md)
-- [Math](math/index.md)`;
+Welcome! Start with the theory, then practice.
+
+## Materials
+
+- [Tenses: the theory](materi-tenses.md)
+
+## Exercises
+
+- [Tenses quiz](tenses.quiz.md)
+
+The area of a circle is $A = \\pi r^2$.`;
 
 const quizExample = `---
 format: axem/v1
 type: quiz
-title: English Tenses
+title: "English: Tenses"
 ---
 
-## Present perfect
+# problem:multiple_choice
 
-Which sentence uses the present perfect tense correctly?
+## question
 
-- [x] She has finished her homework.
-- [ ] She have finished her homework.
-- [ ] She has finish her homework.
+Which sentence uses the **present perfect** tense correctly?
 
-> **Explanation:** Use **has** with a singular subject and the past participle **finished**.
+## option:correct
 
-## Reading a clock
+She has finished her homework.
+
+## option
+
+She have finished her homework.
+
+## option
+
+She has finish her homework.
+
+## explanation
+
+Use **has** with a singular subject and the past participle **finished**.
+
+# problem:multiple_choice
+
+## question
 
 What time does this clock show?
 
 ![An analog clock showing eight o'clock](assets/clock.svg)
 
-- [ ] 6:00
-- [x] 8:00
-- [ ] 10:00
+## option
 
-> **Explanation:** The hour hand points to 8 and the minute hand points to 12.`;
+6:00
 
-const imageAnswerExample = `## Which shape is a triangle?
+## option:correct
 
-- [ ] ![A square](assets/square.png)
-- [x] ![A triangle](assets/triangle.png)
-- [ ] ![A circle](assets/circle.png)`;
+8:00
 
-const explanationExample = `> **Explanation:** The first line of the explanation.
-> It can continue on the following lines,
-> as long as each line starts with ">".`;
+## explanation
+
+The hour hand points to 8 and the minute hand points to 12.`;
+
+const imageAnswerExample = `# problem:multiple_choice
+
+## question
+
+Which shape is a triangle?
+
+## option
+
+![A square](assets/square.png)
+
+## option:correct
+
+![A triangle](assets/triangle.png)
+
+## option
+
+![A circle](assets/circle.png)`;
+
+const mathExample = `## question
+
+What is the area of a circle with radius $r$?
+
+## option:correct
+
+$\\pi r^2$
+
+## explanation
+
+The area is:
+
+$$A = \\pi r^2$$`;
 
 export default function DocsPage() {
   return (
@@ -89,9 +139,9 @@ export default function DocsPage() {
         <article>
           <h1>Axem documentation</h1>
           <p className="lede">
-            Axem is a renderer for exam and quiz practice. It does not store questions itself.
-            Questions live in plain Markdown files that you host anywhere (for example, a GitHub
-            repository), and Axem fetches and renders them from a URL.
+            Axem is a renderer for exam and quiz practice. It does not store content itself.
+            Pages and quizzes live in plain Markdown files that you host anywhere (for example, a
+            GitHub repository), and Axem fetches and renders them from a URL.
           </p>
 
           <nav className="toc" aria-label="On this page">
@@ -100,9 +150,9 @@ export default function DocsPage() {
               <li><a href="#how-it-works">How it works</a></li>
               <li><a href="#hosting">Hosting a bundle</a></li>
               <li><a href="#structure">Bundle structure</a></li>
-              <li><a href="#index-files">Index files</a></li>
+              <li><a href="#pages">Pages</a></li>
+              <li><a href="#markdown">Markdown, math and images</a></li>
               <li><a href="#quiz-files">Quiz files</a></li>
-              <li><a href="#images">Images</a></li>
               <li><a href="#example">Complete example</a></li>
               <li><a href="#reference">Format reference</a></li>
               <li><a href="#sharing">Sharing a link</a></li>
@@ -118,19 +168,18 @@ export default function DocsPage() {
                 You paste the URL of the <strong>root file</strong> into Axem and press Load.
               </li>
               <li>
-                Axem downloads the file in your browser. If it is an <strong>index</strong>, it
-                lists the links it contains. If it is a <strong>quiz</strong>, it renders the
-                questions.
+                Axem downloads the file in your browser. A <strong>page</strong> is rendered as
+                Markdown; a <strong>quiz</strong> is rendered as an interactive practice session.
               </li>
               <li>
-                Clicking a link in an index loads that file, so a bundle can be nested as deeply as
-                you like, for example subject → topic → quiz.
+                Clicking a link inside a page loads the linked file, so a bundle can be nested as
+                deeply as you like, for example subject → topic → theory or quiz.
               </li>
             </ol>
             <p>
               There are two kinds of files, and Axem tells them apart by their content, not by
               their file name: a file whose front matter contains <code>type: quiz</code> is a
-              quiz; every other Markdown file is an index.
+              quiz; every other Markdown file is a page.
             </p>
             <p>
               Axem is meant for self-study, so it does not try to prevent peeking: the answers are
@@ -166,8 +215,8 @@ export default function DocsPage() {
           <section id="structure">
             <h2>Bundle structure</h2>
             <p>
-              A bundle is a folder of Markdown files. You choose the depth. Each index file links to
-              the next level, using paths relative to itself.
+              A bundle is a folder of Markdown files. You choose the depth. Pages link to the next
+              level using ordinary Markdown links, with paths relative to the page.
             </p>
             <pre><code>{structureExample}</code></pre>
             <p>
@@ -176,33 +225,57 @@ export default function DocsPage() {
             </p>
           </section>
 
-          <section id="index-files">
-            <h2>Index files</h2>
+          <section id="pages">
+            <h2>Pages</h2>
             <p>
-              An index file is a Markdown file that does <em>not</em> declare{" "}
-              <code>type: quiz</code>. Axem reads two things from it:
+              A page is any Markdown file that does <em>not</em> declare <code>type: quiz</code>.
+              It can hold anything Markdown can: theory, study notes, a table of contents, or just
+              a list of links. <code>index.md</code> is not special; it is a page like any other.
             </p>
+            <pre><code>{pageExample}</code></pre>
             <ul>
               <li>
-                <strong>Title</strong>: the first level-1 heading (<code># Title</code>), or a{" "}
-                <code>title</code> in the front matter.
+                <strong>Title</strong>: the <code>title</code> in the optional front matter, or
+                otherwise the first level-1 heading.
               </li>
               <li>
-                <strong>Links</strong>: every list item that consists of a Markdown link, written
-                as <code>- [Label](path)</code> (or starting with <code>*</code>).
+                <strong>Links</strong> are plain Markdown links, <code>[label](path)</code>. A
+                relative link to another file opens that file inside Axem. A full{" "}
+                <code>https://</code> link opens in a new tab as a normal website. Links starting with <code>#</code> jump to a heading on the same page.
               </li>
             </ul>
-            <pre><code>{indexExample}</code></pre>
+          </section>
+
+          <section id="markdown">
+            <h2>Markdown, math and images</h2>
             <p>
-              A link can point to another index file, to a quiz file, or to a full URL on another
-              host or repository. Other text in an index file is ignored by Axem, so it can double
-              as a readable README on GitHub.
+              Pages and every part of a quiz (question, options, explanation) are rendered as
+              Markdown with GitHub-flavoured extensions: headings, lists, tables, task lists,
+              blockquotes, code blocks, bold, italic and strikethrough. Raw HTML is not rendered.
+            </p>
+            <h3>Math formulas</h3>
+            <p>
+              Write LaTeX between single dollar signs for inline math, such as{" "}
+              <code>$x^2 + y^2 = z^2$</code>, and between double dollar signs for a centred block:
+            </p>
+            <pre><code>{`$$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$`}</code></pre>
+            <p>Formulas work in pages, questions, options and explanations.</p>
+            <h3>Images</h3>
+            <p>
+              Use standard Markdown image syntax: <code>![alt text](path-or-url)</code>. A{" "}
+              <strong>relative path</strong> such as <code>assets/clock.svg</code> is resolved
+              against the URL of the file that contains it; a <strong>full URL</strong> is used as
+              is. Always write meaningful alt text.
             </p>
           </section>
 
           <section id="quiz-files">
             <h2>Quiz files</h2>
-            <p>A quiz file has two parts: front matter, then one section per question.</p>
+            <p>
+              A quiz file has front matter followed by any number of problems. Each problem is
+              written with headings; the headings are structure only and are never shown to the
+              learner.
+            </p>
 
             <h3>Front matter</h3>
             <p>
@@ -215,77 +288,48 @@ export default function DocsPage() {
               </thead>
               <tbody>
                 <tr><td><code>type</code></td><td>Yes</td><td>Must be <code>quiz</code>. This is what makes the file a quiz.</td></tr>
-                <tr><td><code>title</code></td><td>No</td><td>Name shown above the quiz. Falls back to the first <code># Heading</code>.</td></tr>
+                <tr><td><code>title</code></td><td>Recommended</td><td>Name shown above the quiz. Defaults to “Untitled quiz”.</td></tr>
                 <tr><td><code>format</code></td><td>Recommended</td><td>Format version. Use <code>axem/v1</code>.</td></tr>
               </tbody>
             </table>
 
-            <h3>Questions</h3>
+            <h3>Problems</h3>
             <p>
-              Each question starts with a level-2 heading (<code>## …</code>). The heading text is
-              a label for you as the author; learners see numbered questions. Below the heading,
-              in this order:
+              A problem starts with a level-1 heading <code># problem:multiple_choice</code>. The
+              type after the colon selects the problem kind; more types may come later. Inside a
+              problem, level-2 headings split the content into sections:
             </p>
-            <ol>
-              <li>
-                The <strong>question text</strong>. Plain paragraphs, separated by blank lines.
-                It may contain images.
-              </li>
-              <li>
-                The <strong>options</strong>, written as a task list, one per line. Mark the
-                correct option with <code>[x]</code> and the others with <code>[ ]</code>.
-                Options are shown as A, B, C, D… in the order you write them.
-              </li>
-              <li>
-                An optional <strong>explanation</strong>, written as a blockquote that starts with{" "}
-                <code>Explanation:</code>. It is shown after the learner submits.
-              </li>
-            </ol>
-            <pre><code>{`## Present perfect
-
-Which sentence uses the present perfect tense correctly?
-
-- [x] She has finished her homework.
-- [ ] She have finished her homework.
-- [ ] She has finish her homework.
-
-> **Explanation:** Use **has** with a singular subject.`}</code></pre>
-            <p>Rules to keep in mind:</p>
-            <ul>
-              <li>Mark exactly one option as correct. Currently only multiple choice is supported.</li>
-              <li>Every option must fit on a single line.</li>
-              <li>Put the explanation after the options. Text before the first option is treated as the question.</li>
-              <li>
-                Multi-line explanations are allowed; start every line with <code>&gt;</code>:
-              </li>
-            </ul>
-            <pre><code>{explanationExample}</code></pre>
-
-            <h3>Text formatting</h3>
+            <table>
+              <thead>
+                <tr><th>Heading</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>## question</code></td><td>The question, as Markdown. Required.</td></tr>
+                <tr><td><code>## option</code></td><td>An incorrect option, as Markdown.</td></tr>
+                <tr><td><code>## option:correct</code></td><td>The correct option, as Markdown. Exactly one per problem.</td></tr>
+                <tr><td><code>## explanation</code></td><td>Optional. Shown after the learner submits.</td></tr>
+              </tbody>
+            </table>
             <p>
-              Question text, options and explanations support <code>**bold**</code>,{" "}
-              <code>*italic*</code>, <code>`inline code`</code>, line breaks, and images.
-              Other Markdown (headings, tables, nested lists, links) is not rendered inside
-              questions.
-            </p>
-          </section>
-
-          <section id="images">
-            <h2>Images</h2>
-            <p>
-              Use standard Markdown image syntax: <code>![alt text](path-or-url)</code>. Images
-              work in the question text, in options, and in explanations.
+              Options are shown as A, B, C, D… in the order you write them. Because each section
+              is full Markdown, questions and options can span several lines and contain lists,
+              tables, formulas and images.
             </p>
             <ul>
               <li>
-                A <strong>relative path</strong> such as <code>assets/clock.svg</code> is resolved
-                against the URL of the quiz file that contains it.
+                <code># problem:…</code> and the four <code>##</code> headings above are reserved.
+                Use <code>###</code> or deeper headings inside a section if you need headings.
               </li>
+              <li>Text before the first <code># problem:</code> is ignored.</li>
               <li>
-                A <strong>full URL</strong> is used as is.
+                A malformed problem (missing question, no options, no or several correct options,
+                unknown type or unknown heading) is not hidden: Axem shows an error for that
+                problem so you can fix it.
               </li>
-              <li>Always write meaningful alt text; it is read by screen readers.</li>
             </ul>
+
+            <h3>Math and images in problems</h3>
+            <pre><code>{mathExample}</code></pre>
             <p>An image-only answer set looks like this:</p>
             <pre><code>{imageAnswerExample}</code></pre>
           </section>
@@ -293,9 +337,9 @@ Which sentence uses the present perfect tense correctly?
           <section id="example">
             <h2>Complete example</h2>
             <p>
-              <code>index.md</code>, the root file you give to Axem:
+              <code>index.md</code>, the root page you give to Axem:
             </p>
-            <pre><code>{indexExample}</code></pre>
+            <pre><code>{pageExample}</code></pre>
             <p>
               <code>english/tenses.quiz.md</code>:
             </p>
@@ -317,13 +361,14 @@ Which sentence uses the present perfect tense correctly?
               </thead>
               <tbody>
                 <tr><td><code>type: quiz</code> in front matter</td><td>The file is rendered as a quiz.</td></tr>
-                <tr><td>No <code>type: quiz</code></td><td>The file is rendered as an index of links.</td></tr>
-                <tr><td><code># Title</code></td><td>Index title (and quiz title if there is no <code>title</code> key).</td></tr>
-                <tr><td><code>- [Label](path)</code></td><td>A link card in an index.</td></tr>
-                <tr><td><code>## Heading</code> in a quiz</td><td>The start of a new question.</td></tr>
-                <tr><td><code>- [ ] text</code></td><td>An incorrect option.</td></tr>
-                <tr><td><code>- [x] text</code></td><td>The correct option.</td></tr>
-                <tr><td><code>&gt; **Explanation:** text</code></td><td>The explanation shown after submitting.</td></tr>
+                <tr><td>No <code>type: quiz</code></td><td>The file is rendered as a Markdown page.</td></tr>
+                <tr><td><code>[label](path)</code></td><td>A link; relative links open in Axem.</td></tr>
+                <tr><td><code># problem:multiple_choice</code></td><td>The start of a problem (not shown).</td></tr>
+                <tr><td><code>## question</code></td><td>The question text.</td></tr>
+                <tr><td><code>## option</code></td><td>An incorrect option.</td></tr>
+                <tr><td><code>## option:correct</code></td><td>The correct option.</td></tr>
+                <tr><td><code>## explanation</code></td><td>The explanation shown after submitting.</td></tr>
+                <tr><td><code>$…$</code> and <code>$$…$$</code></td><td>Inline and block math.</td></tr>
                 <tr><td><code>![alt](path)</code></td><td>An image, resolved relative to the file.</td></tr>
               </tbody>
             </table>
@@ -332,10 +377,10 @@ Which sentence uses the present perfect tense correctly?
           <section id="sharing">
             <h2>Sharing a link</h2>
             <p>
-              After a bundle loads, the address bar changes to{" "}
-              <code>/?_s=&lt;base64&gt;</code>, where the value is the Base64-encoded source URL.
-              Anyone who opens that address loads the same bundle automatically. You can build such
-              a link yourself by Base64-encoding the URL of your root file.
+              Each page or quiz has its own address, <code>/&lt;base64url&gt;</code>, where the
+              value is the URL-safe Base64-encoded source URL (no padding). Anyone who opens that
+              address loads the same file directly. You can build such a link yourself by
+              Base64URL-encoding the URL of your root file.
             </p>
           </section>
 
@@ -349,20 +394,21 @@ Which sentence uses the present perfect tense correctly?
               </dd>
               <dt>The server responded with 404</dt>
               <dd>Check the branch name and path. Raw URLs are case-sensitive.</dd>
-              <dt>My quiz shows as a list of links, or as an empty index</dt>
+              <dt>My quiz shows as a plain page</dt>
               <dd>
                 The front matter is missing <code>type: quiz</code>, or the file does not start with
                 the <code>---</code> block.
               </dd>
-              <dt>A question has no options</dt>
+              <dt>“This problem is malformed”</dt>
               <dd>
-                Options must start with <code>- [ ]</code> or <code>- [x]</code> (a dash, a space,
-                and brackets), each on its own line.
+                Read the message: each problem needs a <code>## question</code>, at least one{" "}
+                <code>## option</code> and exactly one <code>## option:correct</code>, and may only
+                use the reserved headings listed above.
               </dd>
               <dt>An image does not appear</dt>
               <dd>
-                Check that the path is relative to the quiz file, and that the image is served from
-                a raw/public URL.
+                Check that the path is relative to the file that contains it, and that the image is
+                served from a raw/public URL.
               </dd>
               <dt>Changes I pushed are not visible</dt>
               <dd>

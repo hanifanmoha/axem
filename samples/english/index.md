@@ -1,3 +1,9 @@
 # English
 
-- [Tenses](tenses.quiz.md)
+## Materials
+
+- [Tenses: the theory](materi-tenses.md)
+
+## Exercises
+
+- [Tenses quiz](tenses.quiz.md)

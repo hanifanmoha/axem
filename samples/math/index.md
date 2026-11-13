@@ -1,3 +1,3 @@
 # Math
 
-- [Geometry](geometry.quiz.md)
+- [Geometry quiz](geometry.quiz.md)

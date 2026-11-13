@@ -1,40 +1,51 @@
-import { ReactNode } from "react";
+"use client";
 
-const inlinePattern = /(!\[[^\]]*]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+import Link from "next/link";
+import ReactMarkdown, { type Components } from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import { encodeSource } from "@/lib/source";
 
-function Inline({ value }: { value: string }) {
-  const nodes: ReactNode[] = value.split(inlinePattern).map((part, index) => {
-    const image = part.match(/^!\[([^\]]*)]\(([^)]+)\)$/);
-    if (image) {
-      return <img key={index} src={image[2]} alt={image[1]} loading="lazy" />;
-    }
-    if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={index}>{part.slice(2, -2)}</strong>;
-    if (/^\*[^*]+\*$/.test(part)) return <em key={index}>{part.slice(1, -1)}</em>;
-    if (/^`[^`]+`$/.test(part)) return <code key={index}>{part.slice(1, -1)}</code>;
-
-    return part.split("\n").flatMap((line, lineIndex, lines) =>
-      lineIndex < lines.length - 1 ? [line, <br key={`${index}-${lineIndex}`} />] : [line],
-    );
-  });
-
-  return <>{nodes}</>;
+function resolve(href: string, baseUrl: string) {
+  try {
+    return new URL(href, baseUrl).toString();
+  } catch {
+    return href;
+  }
 }
 
-export function Markdown({ value }: { value: string }) {
+export function Markdown({ value, baseUrl }: { value: string; baseUrl: string }) {
+  const components: Components = {
+    a({ href, children }) {
+      if (!href) return <>{children}</>;
+      if (href.startsWith("#")) return <a href={href}>{children}</a>;
+      if (/^(mailto|tel):/i.test(href)) return <a href={href}>{children}</a>;
+      const absolute = resolve(href, baseUrl);
+      if (/^https?:\/\//i.test(href)) {
+        return (
+          <a href={href} target="_blank" rel="noopener noreferrer">
+            {children}
+          </a>
+        );
+      }
+      if (!/^https?:\/\//i.test(absolute)) return <a href={href}>{children}</a>;
+      return <Link href={`/${encodeSource(absolute)}`}>{children}</Link>;
+    },
+    img({ src, alt }) {
+      const source = typeof src === "string" ? resolve(src, baseUrl) : undefined;
+      return <img src={source} alt={alt ?? ""} loading="lazy" />;
+    },
+  };
+
   return (
-    <>
-      {value
-        .split(/\n{2,}/)
-        .filter(Boolean)
-        .map((paragraph, index) => (
-          <p key={index}>
-            <Inline value={paragraph} />
-          </p>
-        ))}
-    </>
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex, rehypeSlug]}
+      components={components}
+    >
+      {value}
+    </ReactMarkdown>
   );
-}
-
-export function InlineMarkdown({ value }: { value: string }) {
-  return <Inline value={value} />;
 }

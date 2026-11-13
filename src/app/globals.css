@@ -166,31 +166,26 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
 .notice.error { background: var(--bad-bg); border-color: var(--bad-line); color: var(--bad); }
 .notice.error p { margin-top: 4px; }
 
-/* Index */
-.index h1 { margin-bottom: 24px; }
-.cards { display: grid; gap: 10px; }
-.card {
-  align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  color: var(--ink);
-  cursor: pointer;
-  display: flex;
-  font: inherit;
-  font-weight: 550;
-  justify-content: space-between;
-  padding: 16px 18px;
-  text-align: left;
-  transition: transform 160ms var(--ease-out), border-color 150ms ease;
-}
-.card svg { color: var(--muted); flex: none; transition: transform 200ms var(--ease-out); }
-.card:active { transform: scale(0.99); }
-@media (hover: hover) and (pointer: fine) {
-  .card:hover { border-color: var(--line-strong); }
-  .card:hover svg { transform: translateX(3px); }
-}
+/* Markdown */
+.md { line-height: 1.65; overflow-wrap: anywhere; }
+.md > :first-child, .md > * > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md p, .md ul, .md ol, .md blockquote, .md pre, .md table { margin: 0 0 14px; }
+.md h1, .md h2, .md h3, .md h4 { letter-spacing: -0.02em; line-height: 1.25; margin: 28px 0 12px; }
+.md h1 { font-size: 2rem; margin-top: 0; }
+.md h2 { font-size: 1.4rem; }
+.md h3 { font-size: 1.15rem; }
+.md ul, .md ol { padding-left: 1.4em; }
+.md li + li { margin-top: 4px; }
+.md a { color: var(--accent, currentColor); text-decoration: underline; text-underline-offset: 3px; }
+.md blockquote { border-left: 3px solid var(--line-strong); color: var(--muted); padding-left: 14px; }
+.md code { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 0.9em; padding: 1px 5px; }
+.md pre { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; padding: 12px 14px; }
+.md pre code { background: none; border: 0; padding: 0; }
+.md table { border-collapse: collapse; display: block; overflow-x: auto; }
+.md th, .md td { border: 1px solid var(--line); padding: 6px 12px; }
+.md .katex-display { overflow-x: auto; overflow-y: hidden; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
 
 /* Quiz */
 .quiz-head { align-items: baseline; display: flex; gap: 16px; justify-content: space-between; }
@@ -220,6 +215,8 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
   transition: transform 160ms var(--ease-out), border-color 120ms ease, background-color 120ms ease, opacity 150ms ease;
 }
 .choice-body { flex: 1; min-width: 0; }
+.choice { cursor: pointer; }
+.choice-body > :last-child { margin-bottom: 0; }
 .choice-body img { margin: 8px 0; max-height: 200px; }
 .choice:active { transform: scale(0.99); }
 .choice.selected { background: color-mix(in srgb, var(--focus) 8%, var(--surface)); border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); }
@@ -242,7 +239,7 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
 
 .actions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .actions .button { padding: 10px 18px; }
-.actions .submit { margin-left: auto; }
+.review-text { color: var(--muted); margin: 8px 0 20px; }
 .button small, .stat small { font-size: 0.75rem; font-weight: 500; margin-left: 8px; opacity: 0.7; }
 .hint-keys { color: var(--muted); font-size: 0.8rem; margin-top: 16px; }
 @media (hover: none) { .hint-keys { display: none; } }
@@ -292,7 +289,6 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.index .card { animation: rise 220ms var(--ease-out) both; animation-delay: calc(var(--i) * 40ms); }
 
 @media (max-width: 560px) {
   .topbar-inner { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }

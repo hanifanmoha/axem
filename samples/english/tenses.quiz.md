@@ -1,27 +1,51 @@
 ---
 format: axem/v1
 type: quiz
-title: English: Tenses
+title: "English: Tenses"
 ---
 
-## Present perfect
+# problem:multiple_choice
 
-Which sentence uses the present perfect tense correctly?
+## question
 
-- [x] She has finished her homework.
-- [ ] She have finished her homework.
-- [ ] She has finish her homework.
+Which sentence uses the **present perfect** tense correctly?
 
-> **Explanation:** Use **has** with a singular subject and the past participle **finished**.
+## option:correct
 
-## Reading a clock
+She has finished her homework.
+
+## option
+
+She have finished her homework.
+
+## option
+
+She has finish her homework.
+
+## explanation
+
+Use **has** with a singular subject and the past participle **finished**.
+
+# problem:multiple_choice
+
+## question
 
 What time does this clock show?
 
 ![An analog clock showing eight o'clock](assets/clock.svg)
 
-- [ ] 6:00
-- [x] 8:00
-- [ ] 10:00
+## option
 
-> **Explanation:** The hour hand points to 8 and the minute hand points to 12.
+6:00
+
+## option:correct
+
+8:00
+
+## option
+
+10:00
+
+## explanation
+
+The hour hand points to 8 and the minute hand points to 12.

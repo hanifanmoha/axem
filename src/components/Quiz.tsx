@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Question } from "@/lib/bundle";
-import { InlineMarkdown, Markdown } from "./Markdown";
+import type { Problem } from "@/lib/bundle";
+import { Markdown } from "./Markdown";
 
 const letter = (index: number) => String.fromCharCode(65 + index);
 
@@ -22,18 +22,28 @@ function CrossIcon() {
   );
 }
 
-export function Quiz({ title, questions }: { title: string; questions: Question[] }) {
+export function Quiz({
+  title,
+  questions,
+  baseUrl,
+}: {
+  title: string;
+  questions: Problem[];
+  baseUrl: string;
+}) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(() => questions.map(() => null));
   const [submitted, setSubmitted] = useState(false);
 
   const total = questions.length;
-  const question = questions[index];
+  // index === total is the submit page, which has no question.
+  const isReview = index === total;
+  const question: Problem | undefined = questions[index];
   const answeredCount = answers.filter((answer) => answer !== null).length;
 
   const isCorrect = (questionIndex: number) => {
     const answer = answers[questionIndex];
-    return answer !== null && questions[questionIndex].choices[answer]?.correct === true;
+    return answer !== null && questions[questionIndex].options[answer]?.correct === true;
   };
   const correctCount = submitted ? questions.filter((_, i) => isCorrect(i)).length : 0;
   const skippedCount = answers.filter((answer) => answer === null).length;
@@ -45,7 +55,7 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
   }
 
   function go(target: number) {
-    if (target >= 0 && target < total) setIndex(target);
+    if (target >= 0 && target <= total) setIndex(target);
   }
 
   function submit() {
@@ -63,10 +73,10 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
-      if (event.metaKey || event.ctrlKey || event.altKey || !question) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (target.closest("input, textarea")) return;
 
-      if (event.key === "ArrowRight" || (event.key === "Enter" && !target.closest("button"))) {
+      if (event.key === "ArrowRight" || (event.key === "Enter" && !target.closest("button, [role=radio]"))) {
         event.preventDefault();
         go(index + 1);
       } else if (event.key === "ArrowLeft") {
@@ -74,7 +84,7 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
         go(index - 1);
       } else if (/^[a-z]$/i.test(event.key)) {
         const choiceIndex = event.key.toUpperCase().charCodeAt(0) - 65;
-        if (choiceIndex < question.choices.length) select(choiceIndex);
+        if (question && choiceIndex < question.options.length) select(choiceIndex);
       }
     }
 
@@ -86,7 +96,7 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
     return <p className="notice">This quiz does not contain any questions yet.</p>;
   }
 
-  const answer = answers[index];
+  const answer = answers[index] ?? null;
   const verdict = answer === null ? "skipped" : isCorrect(index) ? "ok" : "bad";
 
   return (
@@ -163,18 +173,53 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
             </button>
           );
         })}
+        <button
+          type="button"
+          className={`nav-item ${isReview ? "current" : ""}`}
+          aria-label="Submit page"
+          aria-current={isReview ? "step" : undefined}
+          onClick={() => go(total)}
+        >
+          <CheckIcon />
+        </button>
       </nav>
 
+      {isReview && (
+        <div className="step" key="review">
+          <h2 className="question-title">Submit your answers</h2>
+          <p className="review-text">
+            {submitted
+              ? "Your answers have been submitted. See your score above."
+              : skippedCount > 0
+                ? `${skippedCount} ${skippedCount === 1 ? "question is" : "questions are"} still unanswered. Go back to answer ${skippedCount === 1 ? "it" : "them"}, or submit now.`
+                : "All questions are answered. Submit when you're ready."}
+          </p>
+          {!submitted && (
+            <button className="button primary" type="button" onClick={submit}>
+              Submit answers
+            </button>
+          )}
+        </div>
+      )}
+
+      {question && (
       <div className="step" key={index}>
         <h2 className="question-title">
           Question {index + 1} of {total}
         </h2>
         <div className="prompt">
-          <Markdown value={question.prompt} />
+          {question.error ? (
+            <div className="notice error" role="alert">
+              <strong>This problem is malformed</strong>
+              <p>{question.error}</p>
+            </div>
+          ) : (
+            <Markdown value={question.question} baseUrl={baseUrl} />
+          )}
         </div>
 
         <div className="choices" role="radiogroup" aria-label="Answers">
-          {question.choices.map((choice, choiceIndex) => {
+          {question.options.map((choice, choiceIndex) => {
             const isSelected = answer === choiceIndex;
             const state = submitted
               ? choice.correct
@@ -187,19 +232,26 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
                 : "";
 
             return (
-              <button
+              <div
                 key={choiceIndex}
-                type="button"
+                tabIndex={0}
                 role="radio"
                 aria-checked={isSelected}
                 aria-disabled={submitted}
                 className={`choice ${state}`}
                 style={{ "--i": choiceIndex } as React.CSSProperties}
                 onClick={() => select(choiceIndex)}
+                onKeyDown={(event) => {
+                  if (event.key === " " || event.key === "Enter") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    select(choiceIndex);
+                  }
+                }}
               >
                 <kbd>{letter(choiceIndex)}</kbd>
                 <span className="choice-body">
-                  <InlineMarkdown value={choice.text} />
+                  <Markdown value={choice.text} baseUrl={baseUrl} />
                 </span>
                 {submitted && choice.correct && (
                   <span className="mark">
@@ -211,7 +263,7 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
                     <CrossIcon />
                   </span>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
@@ -221,29 +273,24 @@ export function Quiz({ title, questions }: { title: string; questions: Question[
             <strong>
               {verdict === "ok" ? "Correct" : verdict === "bad" ? "Incorrect" : "Not answered"}
             </strong>
-            {question.explanation && <Markdown value={question.explanation} />}
+            {question.explanation && <Markdown value={question.explanation} baseUrl={baseUrl} />}
           </div>
         )}
       </div>
+      )}
 
       <div className="actions">
         <button className="button" type="button" disabled={index === 0} onClick={() => go(index - 1)}>
           Previous
         </button>
-        <button className="button" type="button" disabled={index === total - 1} onClick={() => go(index + 1)}>
+        <button className="button" type="button" disabled={isReview} onClick={() => go(index + 1)}>
           Next
         </button>
-        {!submitted && (
-          <button className="button primary submit" type="button" onClick={submit}>
-            Submit answers
-            {skippedCount > 0 && <small>{skippedCount} unanswered</small>}
-          </button>
-        )}
       </div>
       <p className="hint-keys">
-        {!submitted && (
+        {question && !submitted && (
           <>
-            <kbd>A</kbd>–<kbd>{letter(Math.max(question.choices.length, 1) - 1)}</kbd> select ·{" "}
+            <kbd>A</kbd>–<kbd>{letter(Math.max(question.options.length, 1) - 1)}</kbd> select ·{" "}
           </>
         )}
         <kbd>←</kbd> <kbd>→</kbd> navigate
