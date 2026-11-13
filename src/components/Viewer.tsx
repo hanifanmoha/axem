@@ -88,7 +88,7 @@ export function Viewer({ encoded }: { encoded: string }) {
       )}
 
       {document?.kind === "quiz" && (
-        <Quiz key={url} title={document.title} questions={document.problems} baseUrl={url!} />
+        <Quiz key={url} examId={encoded} title={document.title} questions={document.problems} baseUrl={url!} />
       )}
     </>
   );

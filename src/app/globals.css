@@ -300,3 +300,9 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
   .progress-fill { transition: none; }
 }
+
+/* Quiz intro */
+.intro { display: grid; gap: 14px; justify-items: start; }
+.intro-meta { color: var(--muted); font-variant-numeric: tabular-nums; }
+.stat.time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.clock { font-variant-numeric: tabular-nums; margin-right: 12px; }

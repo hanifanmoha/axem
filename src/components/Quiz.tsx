@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Problem } from "@/lib/bundle";
+import { type Attempt, formatDuration, loadAttempt, saveAttempt } from "@/lib/attempt";
 import { Markdown } from "./Markdown";
 
 const letter = (index: number) => String.fromCharCode(65 + index);
@@ -22,18 +23,33 @@ function CrossIcon() {
   );
 }
 
+function Elapsed({ since }: { since: string }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return <>{formatDuration(since, new Date(now).toISOString())}</>;
+}
+
 export function Quiz({
   title,
   questions,
   baseUrl,
+  examId,
 }: {
+  examId: string;
   title: string;
   questions: Problem[];
   baseUrl: string;
 }) {
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(() => questions.map(() => null));
-  const [submitted, setSubmitted] = useState(false);
+  // undefined while reading localStorage, null when there is no saved attempt.
+  const [attempt, setAttempt] = useState<Attempt | null | undefined>(undefined);
+  const answers = attempt?.answers ?? questions.map(() => null);
+  const submitted = attempt?.status === "finish";
 
   const total = questions.length;
   // index === total is the submit page, which has no question.
@@ -49,9 +65,24 @@ export function Quiz({
   const skippedCount = answers.filter((answer) => answer === null).length;
   const wrongCount = total - correctCount;
 
+  function start() {
+    setAttempt({
+      exam_id: examId,
+      answers: questions.map(() => null),
+      start_time: new Date().toISOString(),
+      end_time: null,
+      status: "in_progress",
+    });
+    setIndex(0);
+    window.scrollTo({ top: 0 });
+  }
+
   function select(choiceIndex: number) {
-    if (submitted) return;
-    setAnswers((current) => current.map((answer, i) => (i === index ? choiceIndex : answer)));
+    if (!attempt || submitted) return;
+    setAttempt({
+      ...attempt,
+      answers: attempt.answers.map((answer, i) => (i === index ? choiceIndex : answer)),
+    });
   }
 
   function go(target: number) {
@@ -59,16 +90,22 @@ export function Quiz({
   }
 
   function submit() {
-    setSubmitted(true);
+    if (attempt) setAttempt({ ...attempt, status: "finish", end_time: new Date().toISOString() });
     window.scrollTo({ top: 0 });
   }
 
-  function retake() {
-    setAnswers(questions.map(() => null));
-    setSubmitted(false);
-    setIndex(0);
-    window.scrollTo({ top: 0 });
-  }
+  useEffect(() => {
+    const saved = loadAttempt(examId, questions.length);
+    setAttempt(saved);
+    if (saved?.status === "in_progress") {
+      const firstOpen = saved.answers.indexOf(null);
+      setIndex(firstOpen === -1 ? questions.length : firstOpen);
+    }
+  }, [examId, questions.length]);
+
+  useEffect(() => {
+    if (attempt) saveAttempt(attempt);
+  }, [attempt]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -96,6 +133,22 @@ export function Quiz({
     return <p className="notice">This quiz does not contain any questions yet.</p>;
   }
 
+  if (attempt === undefined) return null;
+
+  if (attempt === null) {
+    return (
+      <section className="quiz intro">
+        <h1>{title}</h1>
+        <p className="intro-meta">
+          {total} {total === 1 ? "question" : "questions"}
+        </p>
+        <button className="button primary" type="button" onClick={start}>
+          Start
+        </button>
+      </section>
+    );
+  }
+
   const answer = answers[index] ?? null;
   const verdict = answer === null ? "skipped" : isCorrect(index) ? "ok" : "bad";
 
@@ -105,6 +158,9 @@ export function Quiz({
         <h1>{title}</h1>
         {!submitted && (
           <span className="counter">
+            <span className="clock" aria-label="Elapsed time">
+              <Elapsed since={attempt.start_time} />
+            </span>
             {answeredCount} of {total} answered
           </span>
         )}
@@ -125,7 +181,10 @@ export function Quiz({
               {skippedCount > 0 && <small>{skippedCount} unanswered</small>}
             </span>
           </div>
-          <button className="button" type="button" onClick={retake}>
+          {attempt.end_time && (
+            <p className="stat time">Time: {formatDuration(attempt.start_time, attempt.end_time)}</p>
+          )}
+          <button className="button" type="button" onClick={start}>
             Retake quiz
           </button>
         </div>
