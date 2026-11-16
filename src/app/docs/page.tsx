@@ -35,7 +35,7 @@ Welcome! Start with the theory, then practice.
 
 ## Exercises
 
-- [Tenses quiz](tenses.quiz.md)
+- [Tenses quiz](tenses.quiz.md "quiz")
 
 The area of a circle is $A = \\pi r^2$.`;
 
@@ -245,6 +245,15 @@ export default function DocsPage() {
                 relative link to another file opens that file inside Axem. A full{" "}
                 <code>https://</code> link opens in a new tab as a normal website. Links starting with <code>#</code> jump to a heading on the same page.
               </li>
+              <li>
+                <strong>Quiz links</strong>: add <code>&quot;quiz&quot;</code> as the link title,{" "}
+                <code>[label](path &quot;quiz&quot;)</code>. It is still an ordinary link in any Markdown
+                viewer. In Axem it also shows your latest result: a check icon when every
+                answer was correct, a half-filled icon when the quiz was submitted with wrong
+                answers, and no icon when it has not been taken. Use it for every quiz in an
+                exam list so progress is visible at a glance. Results are saved in this browser
+                only.
+              </li>
             </ul>
           </section>
 
@@ -365,6 +374,7 @@ export default function DocsPage() {
                 <tr><td><code>type: quiz</code> in front matter</td><td>The file is rendered as a quiz.</td></tr>
                 <tr><td>No <code>type: quiz</code></td><td>The file is rendered as a Markdown page.</td></tr>
                 <tr><td><code>[label](path)</code></td><td>A link; relative links open in Axem.</td></tr>
+                <tr><td><code>[label](path &quot;quiz&quot;)</code></td><td>A quiz link with a status icon (for exam lists).</td></tr>
                 <tr><td><code># problem:multiple_choice</code></td><td>The start of a problem (not shown).</td></tr>
                 <tr><td><code>## question</code></td><td>The question text.</td></tr>
                 <tr><td><code>## option</code></td><td>An incorrect option.</td></tr>
