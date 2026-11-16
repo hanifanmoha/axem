@@ -324,6 +324,10 @@ main { margin: 0 auto; max-width: 760px; padding: 40px 24px 96px; }
 
 /* Quiz intro */
 .intro { display: grid; gap: 14px; justify-items: start; }
+.quiz-link { align-items: center; display: inline-flex; gap: 8px; }
+.quiz-status { display: inline-flex; flex: none; height: 16px; width: 16px; }
+.quiz-status.done { color: var(--ok); }
+.quiz-status.retry { color: var(--bad); }
 .intro-meta { color: var(--muted); font-variant-numeric: tabular-nums; }
 .stat.time { color: var(--muted); font-variant-numeric: tabular-nums; }
 .clock { font-variant-numeric: tabular-nums; margin-right: 12px; }
