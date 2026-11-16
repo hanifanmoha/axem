@@ -56,3 +56,6 @@ Basic addition.
 `## option:correct` and `## explanation` split it into sections. These
 headings are structure only and are not rendered; each section is full
 Markdown. See `/docs` in the app for the complete reference.
+In an exam list, write quiz links as `[title](path "quiz")`. They stay normal
+links in any Markdown viewer; Axem adds a check icon for a quiz with all answers
+correct and a half-filled icon for one submitted with wrong answers.
