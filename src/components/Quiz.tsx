@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import type { Problem } from "@/lib/bundle";
-import { type Attempt, formatDuration, loadAttempt, saveAttempt } from "@/lib/attempt";
+import {
+  type Attempt,
+  type Result,
+  formatDuration,
+  loadAttempt,
+  loadResult,
+  saveAttempt,
+  saveResult,
+} from "@/lib/attempt";
 import { Markdown } from "./Markdown";
 
 const letter = (index: number) => String.fromCharCode(65 + index);
@@ -48,6 +56,7 @@ export function Quiz({
   const [index, setIndex] = useState(0);
   // undefined while reading localStorage, null when there is no saved attempt.
   const [attempt, setAttempt] = useState<Attempt | null | undefined>(undefined);
+  const [lastResult, setLastResult] = useState<Result | null>(null);
   const answers = attempt?.answers ?? questions.map(() => null);
   const submitted = attempt?.status === "finish";
 
@@ -90,13 +99,20 @@ export function Quiz({
   }
 
   function submit() {
-    if (attempt) setAttempt({ ...attempt, status: "finish", end_time: new Date().toISOString() });
+    if (attempt) {
+      const end_time = new Date().toISOString();
+      const correct = questions.filter((_, i) => isCorrect(i)).length;
+      saveResult(examId, { correct, total, start_time: attempt.start_time, end_time });
+      setLastResult({ correct, total, start_time: attempt.start_time, end_time });
+      setAttempt({ ...attempt, status: "finish", end_time });
+    }
     window.scrollTo({ top: 0 });
   }
 
   useEffect(() => {
     const saved = loadAttempt(examId, questions.length);
     setAttempt(saved);
+    setLastResult(loadResult(examId));
     if (saved?.status === "in_progress") {
       const firstOpen = saved.answers.indexOf(null);
       setIndex(firstOpen === -1 ? questions.length : firstOpen);
@@ -142,6 +158,13 @@ export function Quiz({
         <p className="intro-meta">
           {total} {total === 1 ? "question" : "questions"}
         </p>
+        {lastResult && (
+          <p className="intro-meta">
+            Last attempt: {lastResult.correct}/{lastResult.total} on{" "}
+            {new Date(lastResult.end_time).toLocaleDateString()} (
+            {formatDuration(lastResult.start_time, lastResult.end_time)})
+          </p>
+        )}
         <button className="button primary" type="button" onClick={start}>
           Start
         </button>
