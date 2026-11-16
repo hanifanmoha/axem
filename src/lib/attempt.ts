@@ -27,6 +27,48 @@ export function saveAttempt(attempt: Attempt) {
   }
 }
 
+export type Result = {
+  correct: number;
+  total: number;
+  start_time: string;
+  end_time: string;
+};
+
+type StoredResult = Result & { exam_id: string };
+
+const RESULTS_KEY = "axem:results";
+const MAX_RESULTS = 500;
+
+// Newest submission first. An array (not an object) keeps the order reliable for any id.
+function readResults(): StoredResult[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RESULTS_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// One record per quiz id: a retake replaces the previous record and moves it to the front.
+export function saveResult(examId: string, result: Result) {
+  const rest = readResults().filter((entry) => entry.exam_id !== examId);
+  try {
+    localStorage.setItem(
+      RESULTS_KEY,
+      JSON.stringify([{ exam_id: examId, ...result }, ...rest].slice(0, MAX_RESULTS)),
+    );
+  } catch {
+    // Persistence is optional.
+  }
+}
+
+export function loadResult(examId: string): Result | null {
+  const entry = readResults().find((item) => item.exam_id === examId);
+  if (!entry) return null;
+  const { correct, total, start_time, end_time } = entry;
+  return { correct, total, start_time, end_time };
+}
+
 export function formatDuration(startIso: string, endIso: string) {
   const seconds = Math.max(0, Math.round((Date.parse(endIso) - Date.parse(startIso)) / 1000));
   const h = Math.floor(seconds / 3600);
