@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { loadResult, type Result } from "@/lib/attempt";
+import { markdownSchema } from "@/lib/sanitize";
 import { encodeSource } from "@/lib/source";
 
 function resolve(href: string, baseUrl: string) {
@@ -67,12 +70,19 @@ export function Markdown({ value, baseUrl }: { value: string; baseUrl: string })
       const source = typeof src === "string" ? resolve(src, baseUrl) : undefined;
       return <img src={source} alt={alt ?? ""} loading="lazy" />;
     },
+    table({ children }) {
+      return (
+        <div className="table-scroll">
+          <table>{children}</table>
+        </div>
+      );
+    },
   };
 
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeKatex, rehypeSlug]}
+      rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSchema], rehypeKatex, rehypeSlug]}
       components={components}
     >
       {value}

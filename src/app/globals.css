@@ -274,6 +274,7 @@ kbd {
 .docs-nav + .settings { margin-left: 0; }
 
 /* Documentation */
+.docs { overflow-wrap: anywhere; }
 .docs article { display: block; }
 .docs .lede { color: var(--muted); font-size: 1.1rem; margin-top: 14px; max-width: 60ch; }
 .docs h2 { font-size: 1.4rem; margin: 56px 0 14px; scroll-margin-top: 80px; }
@@ -284,7 +285,8 @@ kbd {
 .docs a { color: var(--focus); text-underline-offset: 3px; }
 .docs pre { background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--r-lg); font-size: 0.85rem; line-height: 1.6; margin: 14px 0; overflow-x: auto; padding: 14px 16px; }
 .docs pre code { background: none; font-size: inherit; padding: 0; white-space: pre; }
-.docs table { border-collapse: collapse; display: block; margin: 14px 0; overflow-x: auto; width: 100%; font-size: 0.92rem; }
+.docs table { border-collapse: collapse; font-size: 0.92rem; }
+.docs .table-scroll { margin: 14px 0; }
 .docs th, .docs td { border-bottom: var(--edge) solid var(--line); padding: 8px 12px 8px 0; text-align: left; vertical-align: top; }
 .docs th { color: var(--muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
 .docs dt { font-weight: 600; margin-top: 16px; }
@@ -358,10 +360,10 @@ main { margin: 0 auto; max-width: var(--measure); padding: 40px 24px 96px; }
 .notice.error p { margin-top: 4px; }
 
 /* Markdown */
-.md { font-family: var(--font-read); font-size: var(--read-fs); line-height: var(--read-lead); overflow-wrap: anywhere; }
+.md { font-family: var(--font-read); font-size: var(--read-fs); line-height: var(--read-lead); overflow-wrap: break-word; }
 .md > :first-child, .md > * > :first-child { margin-top: 0; }
 .md > :last-child { margin-bottom: 0; }
-.md p, .md ul, .md ol, .md blockquote, .md pre, .md table { margin: 0 0 14px; }
+.md p, .md ul, .md ol, .md blockquote, .md pre { margin: 0 0 14px; }
 .md h1, .md h2, .md h3, .md h4 { letter-spacing: var(--track-sm); line-height: 1.25; margin: 28px 0 12px; }
 .md h1 { font-size: 2rem; margin-top: 0; }
 .md h2 { font-size: 1.4rem; }
@@ -373,10 +375,28 @@ main { margin: 0 auto; max-width: var(--measure); padding: 40px 24px 96px; }
 .md code { background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--r-xs); font-size: 0.9em; padding: 1px 5px; }
 .md pre { background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--r-md); overflow-x: auto; padding: 12px 14px; }
 .md pre code { background: none; border: 0; padding: 0; }
-.md table { border-collapse: collapse; display: block; overflow-x: auto; }
-.md th, .md td { border: var(--edge) solid var(--line); padding: 6px 12px; }
+.md table { border-collapse: collapse; }
+.md th, .md td { border: var(--edge) solid var(--line); padding: 7px 12px; vertical-align: top; }
+
+/* A table wider than the phone scrolls inside its own box: the columns keep a
+   readable width, the swipe stays out of the page's way, and the cut-off last
+   column is its own affordance. */
+.table-scroll { -webkit-overflow-scrolling: touch; margin: 0 0 14px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.table-scroll > table { margin: 0; max-width: 100%; min-width: 100%; width: max-content; }
+/* On a phone there is no room to squeeze columns, so let the table run past the
+   column and scroll; on a wide screen it fits and wraps as before. */
+@media (max-width: 560px) { .table-scroll > table { max-width: 150%; } }
 .md .katex-display { overflow-x: auto; overflow-y: hidden; }
 .md hr { border: 0; border-top: var(--edge) solid var(--line); margin: 24px 0; }
+
+/* Expandable sections: Markdown `<details>` in pages, questions, options and
+   explanations. Scoped to `main` because quiz surfaces are not wrapped in `.md`. */
+main details { background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--r-md); margin: 0 0 14px; padding: 0 14px; }
+main details summary { color: var(--ink); cursor: pointer; font-weight: 600; margin: 0 -14px; padding: 10px 14px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+main details summary::marker { color: var(--muted); }
+main details[open] summary { border-bottom: var(--edge) solid var(--line); margin-bottom: 12px; }
+main details > :last-child { margin-bottom: 12px; }
+@media (hover: hover) and (pointer: fine) { main details summary:hover { color: var(--focus); } }
 
 /* Quiz */
 .quiz-head { align-items: baseline; display: flex; gap: 16px; justify-content: space-between; }
@@ -535,6 +555,14 @@ main { margin: 0 auto; max-width: var(--measure); padding: 40px 24px 96px; }
 @media (prefers-reduced-motion: reduce) { .popover { animation: none; } }
 .welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
+/* Touch */
+html { -webkit-tap-highlight-color: transparent; }
+button, a, [role="button"], [role="radio"], .choice, .nav-item { touch-action: manipulation; }
+.button, .icon-button, .brand, .back, .choice, .nav-item, .segmented button { user-select: none; -webkit-user-select: none; }
+@media (pointer: coarse) {
+  input, .select select { font-size: 16px; }
+}
+
 /* Style specifics — only what tokens cannot express. */
 :root[data-style="reading"] .md p:not(:last-child) { margin-bottom: 1.1em; }
 
@@ -542,6 +570,7 @@ main { margin: 0 auto; max-width: var(--measure); padding: 40px 24px 96px; }
 :root[data-style="brutal"] .brand,
 :root[data-style="brutal"] .question-title { text-transform: uppercase; }
 :root[data-style="brutal"] .brand-mark::after { border-radius: 0; }
+:root[data-style="brutal"] main details { box-shadow: var(--shadow); }
 :root[data-style="brutal"] .button,
 :root[data-style="brutal"] .icon-button,
 :root[data-style="brutal"] .choice,

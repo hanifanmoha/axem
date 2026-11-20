@@ -262,15 +262,51 @@ export default function DocsPage() {
             <p>
               Pages and every part of a quiz (question, options, explanation) are rendered as
               Markdown with GitHub-flavoured extensions: headings, lists, tables, task lists,
-              blockquotes, code blocks, bold, italic and strikethrough. Raw HTML is not rendered.
+              blockquotes, code blocks, bold, italic and strikethrough.
+            </p>
+            <p>
+              Raw HTML is filtered through an allowlist, so a bundle cannot smuggle in scripts or
+              event handlers. Most tags are dropped; the useful ones — including{" "}
+              <code>&lt;details&gt;</code> for expandable sections — are rendered.
             </p>
             <h3>Math formulas</h3>
             <p>
               Write LaTeX between single dollar signs for inline math, such as{" "}
-              <code>$x^2 + y^2 = z^2$</code>, and between double dollar signs for a centred block:
+              <code>$x^2 + y^2 = z^2$</code>. For a centred block, put <code>$$</code> on its own
+              line above and below the formula — on a single line it stays inline:
             </p>
-            <pre><code>{`$$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$`}</code></pre>
+            <pre><code>{`$$
+\\int_0^1 x^2\\,dx = \\frac{1}{3}
+$$`}</code></pre>
             <p>Formulas work in pages, questions, options and explanations.</p>
+            <h3>Expandable sections</h3>
+            <p>
+              Wrap content in <code>&lt;details&gt;</code> to collapse it behind a summary — handy
+              for hints, worked solutions and long proofs. Leave a <strong>blank line</strong> after{" "}
+              <code>&lt;summary&gt;</code> and before <code>&lt;/details&gt;</code> so the content
+              inside is parsed as Markdown:
+            </p>
+            <pre><code>{`<details>
+<summary>Hint</summary>
+
+Markdown works in here: **bold**, $x^2$, lists and tables.
+
+</details>`}</code></pre>
+            <p>
+              Add <code>open</code> to the opening tag (<code>&lt;details open&gt;</code>) to start
+              expanded. The summary itself is raw HTML rather than Markdown, so use tags such as{" "}
+              <code>&lt;strong&gt;</code> for emphasis there. Live example:
+            </p>
+            <details>
+              <summary>
+                <strong>Show</strong> the worked solution
+              </summary>
+              <p>
+                The area of a circle is πr², so with r = 3 the answer is 9π — and in a real bundle
+                this paragraph is ordinary Markdown.
+              </p>
+            </details>
+
             <h3>Images</h3>
             <p>
               Use standard Markdown image syntax: <code>![alt text](path-or-url)</code>. A{" "}
@@ -293,16 +329,18 @@ export default function DocsPage() {
               The file must start with a block delimited by <code>---</code> lines. Each line is{" "}
               <code>key: value</code> on a single line.
             </p>
-            <table>
-              <thead>
-                <tr><th>Key</th><th>Required</th><th>Meaning</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><code>type</code></td><td>Yes</td><td>Must be <code>quiz</code>. This is what makes the file a quiz.</td></tr>
-                <tr><td><code>title</code></td><td>Recommended</td><td>Name shown above the quiz. Defaults to “Untitled quiz”.</td></tr>
-                <tr><td><code>format</code></td><td>Recommended</td><td>Format version. Use <code>axem/v1</code>.</td></tr>
-              </tbody>
-            </table>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Key</th><th>Required</th><th>Meaning</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>type</code></td><td>Yes</td><td>Must be <code>quiz</code>. This is what makes the file a quiz.</td></tr>
+                  <tr><td><code>title</code></td><td>Recommended</td><td>Name shown above the quiz. Defaults to “Untitled quiz”.</td></tr>
+                  <tr><td><code>format</code></td><td>Recommended</td><td>Format version. Use <code>axem/v1</code>.</td></tr>
+                </tbody>
+              </table>
+            </div>
 
             <h3>Problems</h3>
             <p>
@@ -310,17 +348,19 @@ export default function DocsPage() {
               type after the colon selects the problem kind; more types may come later. Inside a
               problem, level-2 headings split the content into sections:
             </p>
-            <table>
-              <thead>
-                <tr><th>Heading</th><th>Meaning</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><code>## question</code></td><td>The question, as Markdown. Required.</td></tr>
-                <tr><td><code>## option</code></td><td>An incorrect option, as Markdown.</td></tr>
-                <tr><td><code>## option:correct</code></td><td>The correct option, as Markdown. Exactly one per problem.</td></tr>
-                <tr><td><code>## explanation</code></td><td>Optional. Shown after the learner submits.</td></tr>
-              </tbody>
-            </table>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>Heading</th><th>Meaning</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>## question</code></td><td>The question, as Markdown. Required.</td></tr>
+                  <tr><td><code>## option</code></td><td>An incorrect option, as Markdown.</td></tr>
+                  <tr><td><code>## option:correct</code></td><td>The correct option, as Markdown. Exactly one per problem.</td></tr>
+                  <tr><td><code>## explanation</code></td><td>Optional. Shown after the learner submits.</td></tr>
+                </tbody>
+              </table>
+            </div>
             <p>
               Options are shown as A, B, C, D… in the order you write them. Because each section
               is full Markdown, questions and options can span several lines and contain lists,
@@ -366,24 +406,27 @@ export default function DocsPage() {
 
           <section id="reference">
             <h2>Format reference</h2>
-            <table>
-              <thead>
-                <tr><th>You write</th><th>Axem shows</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><code>type: quiz</code> in front matter</td><td>The file is rendered as a quiz.</td></tr>
-                <tr><td>No <code>type: quiz</code></td><td>The file is rendered as a Markdown page.</td></tr>
-                <tr><td><code>[label](path)</code></td><td>A link; relative links open in Axem.</td></tr>
-                <tr><td><code>[label](path &quot;quiz&quot;)</code></td><td>A quiz link with a status icon (for exam lists).</td></tr>
-                <tr><td><code># problem:multiple_choice</code></td><td>The start of a problem (not shown).</td></tr>
-                <tr><td><code>## question</code></td><td>The question text.</td></tr>
-                <tr><td><code>## option</code></td><td>An incorrect option.</td></tr>
-                <tr><td><code>## option:correct</code></td><td>The correct option.</td></tr>
-                <tr><td><code>## explanation</code></td><td>The explanation shown after submitting.</td></tr>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>You write</th><th>Axem shows</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>type: quiz</code> in front matter</td><td>The file is rendered as a quiz.</td></tr>
+                  <tr><td>No <code>type: quiz</code></td><td>The file is rendered as a Markdown page.</td></tr>
+                  <tr><td><code>[label](path)</code></td><td>A link; relative links open in Axem.</td></tr>
+                  <tr><td><code>[label](path &quot;quiz&quot;)</code></td><td>A quiz link with a status icon (for exam lists).</td></tr>
+                  <tr><td><code># problem:multiple_choice</code></td><td>The start of a problem (not shown).</td></tr>
+                  <tr><td><code>## question</code></td><td>The question text.</td></tr>
+                  <tr><td><code>## option</code></td><td>An incorrect option.</td></tr>
+                  <tr><td><code>## option:correct</code></td><td>The correct option.</td></tr>
+                  <tr><td><code>## explanation</code></td><td>The explanation shown after submitting.</td></tr>
+                  <tr><td><code>&lt;details&gt;</code> with <code>&lt;summary&gt;</code></td><td>An expandable section.</td></tr>
                 <tr><td><code>$…$</code> and <code>$$…$$</code></td><td>Inline and block math.</td></tr>
-                <tr><td><code>![alt](path)</code></td><td>An image, resolved relative to the file.</td></tr>
-              </tbody>
-            </table>
+                  <tr><td><code>![alt](path)</code></td><td>An image, resolved relative to the file.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section id="sharing">

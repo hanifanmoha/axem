@@ -55,6 +55,16 @@ function currentStyle(): Style {
   return isStyle(set) ? set : "simple";
 }
 
+// The status bar follows the page background, so it has to be re-read from the
+// tokens whenever the theme changes.
+function syncThemeColor() {
+  const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  if (!bg) return;
+  for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+    meta.setAttribute("content", bg);
+  }
+}
+
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("light");
@@ -64,6 +74,7 @@ export function SettingsMenu() {
   useEffect(() => {
     setMode(currentMode());
     setStyle(currentStyle());
+    syncThemeColor();
 
     // Without an explicit choice the app follows the system, including while
     // the page stays open.
@@ -73,6 +84,7 @@ export function SettingsMenu() {
       const next = event.matches ? "dark" : "light";
       setMode(next);
       document.documentElement.dataset.theme = next;
+      syncThemeColor();
     };
     query.addEventListener("change", follow);
     return () => query.removeEventListener("change", follow);
@@ -98,12 +110,14 @@ export function SettingsMenu() {
     setMode(next);
     document.documentElement.dataset.theme = next;
     write(MODE_KEY, next);
+    syncThemeColor();
   }
 
   function chooseStyle(next: Style) {
     setStyle(next);
     document.documentElement.dataset.style = next;
     write(STYLE_KEY, next);
+    syncThemeColor();
   }
 
   return (
