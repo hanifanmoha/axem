@@ -5,12 +5,12 @@ import type { Problem } from "@/lib/bundle";
 import {
   type Attempt,
   type Result,
-  formatDuration,
   loadAttempt,
   loadResult,
   saveAttempt,
   saveResult,
 } from "@/lib/attempt";
+import { useI18n } from "@/lib/i18n";
 import { Markdown } from "./Markdown";
 
 const letter = (index: number) => String.fromCharCode(65 + index);
@@ -32,6 +32,7 @@ function CrossIcon() {
 }
 
 function Elapsed({ since }: { since: string }) {
+  const { formatDuration } = useI18n();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export function Quiz({
   questions: Problem[];
   baseUrl: string;
 }) {
+  const { t, plural, formatDate, formatDuration } = useI18n();
   const [index, setIndex] = useState(0);
   // undefined while reading localStorage, null when there is no saved attempt.
   const [attempt, setAttempt] = useState<Attempt | null | undefined>(undefined);
@@ -146,7 +148,7 @@ export function Quiz({
   });
 
   if (total === 0) {
-    return <p className="notice">This quiz does not contain any questions yet.</p>;
+    return <p className="notice">{t("quiz.empty")}</p>;
   }
 
   if (attempt === undefined) return null;
@@ -155,18 +157,19 @@ export function Quiz({
     return (
       <section className="quiz intro">
         <h1>{title}</h1>
-        <p className="intro-meta">
-          {total} {total === 1 ? "question" : "questions"}
-        </p>
+        <p className="intro-meta">{plural("quiz.questionCount", total)}</p>
         {lastResult && (
           <p className="intro-meta">
-            Last attempt: {lastResult.correct}/{lastResult.total} on{" "}
-            {new Date(lastResult.end_time).toLocaleDateString()} (
-            {formatDuration(lastResult.start_time, lastResult.end_time)})
+            {t("quiz.lastAttempt", {
+              correct: lastResult.correct,
+              total: lastResult.total,
+              date: formatDate(lastResult.end_time),
+              duration: formatDuration(lastResult.start_time, lastResult.end_time),
+            })}
           </p>
         )}
         <button className="button primary" type="button" onClick={start}>
-          Start
+          {t("quiz.start")}
         </button>
       </section>
     );
@@ -181,10 +184,10 @@ export function Quiz({
         <h1>{title}</h1>
         {!submitted && (
           <span className="counter">
-            <span className="clock" aria-label="Elapsed time">
+            <span className="clock" aria-label={t("quiz.elapsedAria")}>
               <Elapsed since={attempt.start_time} />
             </span>
-            {answeredCount} of {total} answered
+            {t("quiz.answered", { answered: answeredCount, total })}
           </span>
         )}
       </div>
@@ -197,18 +200,20 @@ export function Quiz({
           </p>
           <div className="stats">
             <span className="stat ok">
-              <CheckIcon /> {correctCount} correct
+              <CheckIcon /> {t("quiz.correctCount", { count: correctCount })}
             </span>
             <span className="stat bad">
-              <CrossIcon /> {wrongCount} wrong
-              {skippedCount > 0 && <small>{skippedCount} unanswered</small>}
+              <CrossIcon /> {t("quiz.wrongCount", { count: wrongCount })}
+              {skippedCount > 0 && <small>{t("quiz.unansweredCount", { count: skippedCount })}</small>}
             </span>
           </div>
           {attempt.end_time && (
-            <p className="stat time">Time: {formatDuration(attempt.start_time, attempt.end_time)}</p>
+            <p className="stat time">
+              {t("quiz.time", { duration: formatDuration(attempt.start_time, attempt.end_time) })}
+            </p>
           )}
           <button className="button" type="button" onClick={start}>
-            Retake quiz
+            {t("quiz.retake")}
           </button>
         </div>
       ) : (
@@ -223,7 +228,7 @@ export function Quiz({
         </div>
       )}
 
-      <nav className="navigator" aria-label="Questions">
+      <nav className="navigator" aria-label={t("quiz.navigatorAria")}>
         {questions.map((_, i) => {
           const status = submitted
             ? isCorrect(i)
@@ -234,20 +239,20 @@ export function Quiz({
               : "";
           const label = submitted
             ? isCorrect(i)
-              ? "correct"
+              ? t("quiz.status.correct")
               : answers[i] === null
-                ? "not answered"
-                : "wrong"
+                ? t("quiz.status.unanswered")
+                : t("quiz.status.wrong")
             : answers[i] !== null
-              ? "answered"
-              : "not answered";
+              ? t("quiz.status.answered")
+              : t("quiz.status.unanswered");
 
           return (
             <button
               key={i}
               type="button"
               className={`nav-item ${status} ${i === index ? "current" : ""}`}
-              aria-label={`Question ${i + 1}, ${label}`}
+              aria-label={t("quiz.navItemAria", { number: i + 1, status: label })}
               aria-current={i === index ? "step" : undefined}
               onClick={() => go(i)}
             >
@@ -258,7 +263,7 @@ export function Quiz({
         <button
           type="button"
           className={`nav-item ${isReview ? "current" : ""}`}
-          aria-label="Submit page"
+          aria-label={t("quiz.submitPageAria")}
           aria-current={isReview ? "step" : undefined}
           onClick={() => go(total)}
         >
@@ -268,17 +273,17 @@ export function Quiz({
 
       {isReview && (
         <div className="step" key="review">
-          <h2 className="question-title">Submit your answers</h2>
+          <h2 className="question-title">{t("quiz.reviewTitle")}</h2>
           <p className="review-text">
             {submitted
-              ? "Your answers have been submitted. See your score above."
+              ? t("quiz.reviewSubmitted")
               : skippedCount > 0
-                ? `${skippedCount} ${skippedCount === 1 ? "question is" : "questions are"} still unanswered. Go back to answer ${skippedCount === 1 ? "it" : "them"}, or submit now.`
-                : "All questions are answered. Submit when you're ready."}
+                ? plural("quiz.reviewSkipped", skippedCount)
+                : t("quiz.reviewReady")}
           </p>
           {!submitted && (
             <button className="button primary" type="button" onClick={submit}>
-              Submit answers
+              {t("quiz.submit")}
             </button>
           )}
         </div>
@@ -287,12 +292,12 @@ export function Quiz({
       {question && (
       <div className="step" key={index}>
         <h2 className="question-title">
-          Question {index + 1} of {total}
+          {t("quiz.questionTitle", { number: index + 1, total })}
         </h2>
         <div className="prompt">
           {question.error ? (
             <div className="notice error" role="alert">
-              <strong>This problem is malformed</strong>
+              <strong>{t("quiz.malformed")}</strong>
               <p>{question.error}</p>
             </div>
           ) : (
@@ -300,7 +305,7 @@ export function Quiz({
           )}
         </div>
 
-        <div className="choices" role="radiogroup" aria-label="Answers">
+        <div className="choices" role="radiogroup" aria-label={t("quiz.answersAria")}>
           {question.options.map((choice, choiceIndex) => {
             const isSelected = answer === choiceIndex;
             const state = submitted
@@ -353,7 +358,7 @@ export function Quiz({
         {submitted && (
           <div className={`feedback ${verdict}`}>
             <strong>
-              {verdict === "ok" ? "Correct" : verdict === "bad" ? "Incorrect" : "Not answered"}
+              {t(`quiz.verdict.${verdict}`)}
             </strong>
             {question.explanation && <Markdown value={question.explanation} baseUrl={baseUrl} />}
           </div>
@@ -363,19 +368,20 @@ export function Quiz({
 
       <div className="actions">
         <button className="button" type="button" disabled={index === 0} onClick={() => go(index - 1)}>
-          Previous
+          {t("quiz.previous")}
         </button>
         <button className="button" type="button" disabled={isReview} onClick={() => go(index + 1)}>
-          Next
+          {t("quiz.next")}
         </button>
       </div>
       <p className="hint-keys">
         {question && !submitted && (
           <>
-            <kbd>A</kbd>–<kbd>{letter(Math.max(question.options.length, 1) - 1)}</kbd> select ·{" "}
+            <kbd>A</kbd>–<kbd>{letter(Math.max(question.options.length, 1) - 1)}</kbd>{" "}
+            {t("quiz.hintSelect")} ·{" "}
           </>
         )}
-        <kbd>←</kbd> <kbd>→</kbd> navigate
+        <kbd>←</kbd> <kbd>→</kbd> {t("quiz.hintNavigate")}
       </p>
     </section>
   );

@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "title": "Axem",
+    "description": "A Markdown-based exam preparation renderer"
+  },
+  "topbar": {
+    "homeAria": "Axem home"
+  },
+  "source": {
+    "label": "Bundle URL",
+    "placeholder": "Paste a bundle URL (https://…)",
+    "load": "Load"
+  },
+  "welcome": {
+    "heading": "Practice from any bundle.",
+    "withLast": "Pick up where you left off, or paste another bundle URL above.",
+    "firstTime": "Paste the URL of a Markdown quiz bundle, such as one hosted on GitHub. Axem fetches it and turns it into a focused practice session.",
+    "loadLast": "Load last source",
+    "docs": "Read the documentation"
+  },
+  "viewer": {
+    "back": "Back",
+    "loading": "Loading bundle…",
+    "errorTitle": "Couldn’t load that bundle",
+    "invalidAddress": "The address does not contain a valid Base64URL-encoded bundle URL.",
+    "status": "The source responded with {status}.",
+    "network": "Could not reach that URL. Check the address, and that the host allows cross-origin requests.",
+    "unknown": "Unable to load the bundle."
+  },
+  "quiz": {
+    "empty": "This quiz does not contain any questions yet.",
+    "start": "Start",
+    "questionCount": {
+      "one": "{count} question",
+      "other": "{count} questions"
+    },
+    "lastAttempt": "Last attempt: {correct}/{total} on {date} ({duration})",
+    "elapsedAria": "Elapsed time",
+    "answered": "{answered} of {total} answered",
+    "correctCount": "{count} correct",
+    "wrongCount": "{count} wrong",
+    "unansweredCount": "{count} unanswered",
+    "time": "Time: {duration}",
+    "retake": "Retake quiz",
+    "navigatorAria": "Questions",
+    "navItemAria": "Question {number}, {status}",
+    "submitPageAria": "Submit page",
+    "status": {
+      "correct": "correct",
+      "wrong": "wrong",
+      "answered": "answered",
+      "unanswered": "not answered"
+    },
+    "reviewTitle": "Submit your answers",
+    "reviewSubmitted": "Your answers have been submitted. See your score above.",
+    "reviewSkipped": {
+      "one": "{count} question is still unanswered. Go back to answer it, or submit now.",
+      "other": "{count} questions are still unanswered. Go back to answer them, or submit now."
+    },
+    "reviewReady": "All questions are answered. Submit when you’re ready.",
+    "submit": "Submit answers",
+    "questionTitle": "Question {number} of {total}",
+    "malformed": "This problem is malformed",
+    "answersAria": "Answers",
+    "verdict": {
+      "ok": "Correct",
+      "bad": "Incorrect",
+      "skipped": "Not answered"
+    },
+    "previous": "Previous",
+    "next": "Next",
+    "hintSelect": "select",
+    "hintNavigate": "navigate",
+    "duration": {
+      "hours": "h",
+      "minutes": "m",
+      "seconds": "s"
+    }
+  },
+  "quizLink": {
+    "done": "Completed",
+    "retry": "Needs review"
+  },
+  "settings": {
+    "button": "Settings",
+    "dialog": "Settings",
+    "appearance": "Appearance",
+    "modeAria": "Color mode",
+    "mode": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "style": "Style",
+    "styles": {
+      "simple": "Simple",
+      "minimal": "Minimalist",
+      "reading": "Reading Mode",
+      "brutal": "Neo Brutalism"
+    },
+    "language": "Language",
+    "languageAria": "Language",
+    "languages": {
+      "id": "Indonesia",
+      "en": "English"
+    }
+  }
+}

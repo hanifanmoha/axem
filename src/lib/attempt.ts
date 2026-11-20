@@ -69,10 +69,25 @@ export function loadResult(examId: string): Result | null {
   return { correct, total, start_time, end_time };
 }
 
-export function formatDuration(startIso: string, endIso: string) {
+export type DurationLabels = { hours: string; minutes: string; seconds: string };
+
+export function formatDuration(
+  startIso: string,
+  endIso: string,
+  labels: DurationLabels = { hours: "h", minutes: "m", seconds: "s" },
+) {
   const seconds = Math.max(0, Math.round((Date.parse(endIso) - Date.parse(startIso)) / 1000));
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return h > 0 ? `${h}h ${m}m ${s}s` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+  const parts = [
+    [h, labels.hours],
+    [m, labels.minutes],
+    [s, labels.seconds],
+  ] as const;
+  const first = h > 0 ? 0 : m > 0 ? 1 : 2;
+  return parts
+    .slice(first)
+    .map(([value, label]) => `${value}${label}`)
+    .join(" ");
 }

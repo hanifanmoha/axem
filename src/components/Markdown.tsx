@@ -10,6 +10,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { loadResult, type Result } from "@/lib/attempt";
+import { useI18n } from "@/lib/i18n";
 import { markdownSchema } from "@/lib/sanitize";
 import { encodeSource } from "@/lib/source";
 
@@ -23,6 +24,7 @@ function resolve(href: string, baseUrl: string) {
 
 // A link written as [label](path "quiz") shows the saved result of that quiz.
 function QuizLink({ examId, children }: { examId: string; children: React.ReactNode }) {
+  const { t } = useI18n();
   // Read after mount: localStorage is not available while rendering on the server.
   const [result, setResult] = useState<Result | null>(null);
   useEffect(() => setResult(loadResult(examId)), [examId]);
@@ -32,7 +34,7 @@ function QuizLink({ examId, children }: { examId: string; children: React.ReactN
     <span className="quiz-link">
       <span className={`quiz-status ${result ? (done ? "done" : "retry") : ""}`}>
         {result && (
-          <svg viewBox="0 0 16 16" width="16" height="16" role="img" aria-label={done ? "Completed" : "Needs review"}>
+          <svg viewBox="0 0 16 16" width="16" height="16" role="img" aria-label={done ? t("quizLink.done") : t("quizLink.retry")}>
             <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
             {done ? (
               <path d="m5 8.5 2 2 4-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

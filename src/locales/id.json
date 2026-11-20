@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "title": "Axem",
+    "description": "Penampil bahan latihan ujian berbasis Markdown"
+  },
+  "topbar": {
+    "homeAria": "Beranda Axem"
+  },
+  "source": {
+    "label": "URL bundel",
+    "placeholder": "Tempel URL bundel (https://…)",
+    "load": "Muat"
+  },
+  "welcome": {
+    "heading": "Berlatih dari bundel mana pun.",
+    "withLast": "Lanjutkan latihan terakhirmu, atau tempel URL bundel lain di atas.",
+    "firstTime": "Tempel URL bundel kuis Markdown, misalnya yang disimpan di GitHub. Axem akan mengambilnya lalu mengubahnya menjadi satu sesi latihan yang fokus.",
+    "loadLast": "Muat sumber terakhir",
+    "docs": "Baca dokumentasi"
+  },
+  "viewer": {
+    "back": "Kembali",
+    "loading": "Memuat bundel…",
+    "errorTitle": "Bundel tidak dapat dimuat",
+    "invalidAddress": "Alamat ini tidak berisi URL bundel dengan enkode Base64URL yang valid.",
+    "status": "Sumber merespons dengan status {status}.",
+    "network": "URL tidak dapat dijangkau. Periksa kembali alamatnya, dan pastikan host mengizinkan permintaan lintas asal (CORS).",
+    "unknown": "Bundel gagal dimuat."
+  },
+  "quiz": {
+    "empty": "Kuis ini belum memiliki soal.",
+    "start": "Mulai",
+    "questionCount": {
+      "one": "{count} soal",
+      "other": "{count} soal"
+    },
+    "lastAttempt": "Percobaan terakhir: {correct}/{total} pada {date} ({duration})",
+    "elapsedAria": "Waktu berjalan",
+    "answered": "{answered} dari {total} terjawab",
+    "correctCount": "{count} benar",
+    "wrongCount": "{count} salah",
+    "unansweredCount": "{count} belum dijawab",
+    "time": "Waktu: {duration}",
+    "retake": "Ulangi kuis",
+    "navigatorAria": "Daftar soal",
+    "navItemAria": "Soal {number}, {status}",
+    "submitPageAria": "Halaman kirim jawaban",
+    "status": {
+      "correct": "benar",
+      "wrong": "salah",
+      "answered": "terjawab",
+      "unanswered": "belum dijawab"
+    },
+    "reviewTitle": "Kirim jawabanmu",
+    "reviewSubmitted": "Jawabanmu sudah dikirim. Lihat nilaimu di atas.",
+    "reviewSkipped": {
+      "one": "{count} soal belum dijawab. Kembali untuk menjawabnya, atau kirim sekarang.",
+      "other": "{count} soal belum dijawab. Kembali untuk menjawabnya, atau kirim sekarang."
+    },
+    "reviewReady": "Semua soal sudah dijawab. Kirim jawabanmu jika sudah siap.",
+    "submit": "Kirim jawaban",
+    "questionTitle": "Soal {number} dari {total}",
+    "malformed": "Format soal ini tidak valid",
+    "answersAria": "Pilihan jawaban",
+    "verdict": {
+      "ok": "Benar",
+      "bad": "Salah",
+      "skipped": "Belum dijawab"
+    },
+    "previous": "Sebelumnya",
+    "next": "Berikutnya",
+    "hintSelect": "pilih",
+    "hintNavigate": "navigasi",
+    "duration": {
+      "hours": "j",
+      "minutes": "m",
+      "seconds": "d"
+    }
+  },
+  "quizLink": {
+    "done": "Selesai",
+    "retry": "Perlu diulang"
+  },
+  "settings": {
+    "button": "Pengaturan",
+    "dialog": "Pengaturan",
+    "appearance": "Tampilan",
+    "modeAria": "Mode warna",
+    "mode": {
+      "light": "Terang",
+      "dark": "Gelap"
+    },
+    "style": "Gaya",
+    "styles": {
+      "simple": "Sederhana",
+      "minimal": "Minimalis",
+      "reading": "Mode Baca",
+      "brutal": "Neo Brutalisme"
+    },
+    "language": "Bahasa",
+    "languageAria": "Bahasa",
+    "languages": {
+      "id": "Indonesia",
+      "en": "English"
+    }
+  }
+}

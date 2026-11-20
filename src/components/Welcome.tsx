@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { loadLastSource } from "@/lib/lastSource";
 
 export function Welcome() {
+  const { t } = useI18n();
   // undefined until localStorage has been read, to avoid flashing the wrong content.
   const [last, setLast] = useState<string | null | undefined>(undefined);
 
@@ -14,25 +16,22 @@ export function Welcome() {
 
   return (
     <section className="welcome">
-      <h1>Practice from any bundle.</h1>
+      <h1>{t("welcome.heading")}</h1>
       {last === undefined ? (
         <p aria-hidden="true">&nbsp;</p>
       ) : last ? (
-        <p>Pick up where you left off, or paste another bundle URL above.</p>
+        <p>{t("welcome.withLast")}</p>
       ) : (
-        <p>
-          Paste the URL of a Markdown quiz bundle, such as one hosted on GitHub. Axem fetches it
-          and turns it into a focused practice session.
-        </p>
+        <p>{t("welcome.firstTime")}</p>
       )}
       <div className="welcome-actions">
         {last && (
           <Link className="button primary" href={`/${last}`}>
-            Load last source
+            {t("welcome.loadLast")}
           </Link>
         )}
         <Link className="button" href="/docs">
-          Read the documentation
+          {t("welcome.docs")}
         </Link>
       </div>
     </section>

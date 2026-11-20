@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { LANGS, useI18n } from "@/lib/i18n";
 
 type Mode = "light" | "dark";
 type Style = "simple" | "minimal" | "reading" | "brutal";
@@ -8,17 +9,8 @@ type Style = "simple" | "minimal" | "reading" | "brutal";
 const MODE_KEY = "axem:theme";
 const STYLE_KEY = "axem:style";
 
-const MODES: { value: Mode; label: string }[] = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
-
-const STYLES: { value: Style; label: string }[] = [
-  { value: "simple", label: "Simple" },
-  { value: "minimal", label: "Minimalist" },
-  { value: "reading", label: "Reading Mode" },
-  { value: "brutal", label: "Neo Brutalism" },
-];
+const MODES: Mode[] = ["light", "dark"];
+const STYLES: Style[] = ["simple", "minimal", "reading", "brutal"];
 
 function read(key: string) {
   try {
@@ -41,7 +33,7 @@ function isMode(value: string | null | undefined): value is Mode {
 }
 
 function isStyle(value: string | null | undefined): value is Style {
-  return STYLES.some((style) => style.value === value);
+  return STYLES.some((style) => style === value);
 }
 
 function currentMode(): Mode {
@@ -66,6 +58,7 @@ function syncThemeColor() {
 }
 
 export function SettingsMenu() {
+  const { t, lang, setLang } = useI18n();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("light");
   const [style, setStyle] = useState<Style>("simple");
@@ -125,7 +118,7 @@ export function SettingsMenu() {
       <button
         type="button"
         className="icon-button"
-        aria-label="Settings"
+        aria-label={t("settings.button")}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -137,26 +130,26 @@ export function SettingsMenu() {
       </button>
 
       {open && (
-        <div className="popover" role="dialog" aria-label="Settings">
-          <h2>Appearance</h2>
-          <div className="segmented" role="radiogroup" aria-label="Color mode">
+        <div className="popover" role="dialog" aria-label={t("settings.dialog")}>
+          <h2>{t("settings.appearance")}</h2>
+          <div className="segmented" role="radiogroup" aria-label={t("settings.modeAria")}>
             {MODES.map((option) => (
               <button
-                key={option.value}
+                key={option}
                 type="button"
                 role="radio"
-                aria-checked={mode === option.value}
-                onClick={() => chooseMode(option.value)}
+                aria-checked={mode === option}
+                onClick={() => chooseMode(option)}
               >
-                {option.label}
+                {t(`settings.mode.${option}`)}
               </button>
             ))}
           </div>
 
-          <h2>Style</h2>
+          <h2>{t("settings.style")}</h2>
           <div className="select">
             <select
-              aria-label="Style"
+              aria-label={t("settings.style")}
               value={style}
               onChange={(event) => {
                 const next = event.target.value;
@@ -164,14 +157,29 @@ export function SettingsMenu() {
               }}
             >
               {STYLES.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option key={option} value={option}>
+                  {t(`settings.styles.${option}`)}
                 </option>
               ))}
             </select>
             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m6 9 6 6 6-6" />
             </svg>
+          </div>
+
+          <h2>{t("settings.language")}</h2>
+          <div className="segmented" role="radiogroup" aria-label={t("settings.languageAria")}>
+            {LANGS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={lang === option}
+                onClick={() => setLang(option)}
+              >
+                {t(`settings.languages.${option}`)}
+              </button>
+            ))}
           </div>
         </div>
       )}

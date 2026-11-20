@@ -138,7 +138,8 @@ export default function DocsPage() {
       </header>
 
       <main className="docs">
-        <article>
+        {/* This reference is English-only for now, whatever the app language is. */}
+        <article lang="en">
           <h1>Give this docs url to your LLM</h1>
           <p className="lede">
             Axem is a renderer for exam and quiz practice. It does not store content itself.

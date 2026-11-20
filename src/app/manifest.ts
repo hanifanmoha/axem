@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
+import id from "@/locales/id.json";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Axem",
-    short_name: "Axem",
-    description: "A Markdown-based exam preparation renderer",
+    name: id.meta.title,
+    short_name: id.meta.title,
+    description: id.meta.description,
+    lang: "id",
     start_url: "/",
     scope: "/",
     display: "standalone",

@@ -3,24 +3,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BundleDocument, parseBundleDocument } from "@/lib/bundle";
+import { useI18n } from "@/lib/i18n";
 import { decodeSource } from "@/lib/source";
 import { Markdown } from "@/components/Markdown";
 import { Quiz } from "@/components/Quiz";
 
-type Loaded = { url: string; document?: BundleDocument; error?: string };
+type Failure = { kind: "status"; status: number } | { kind: "network" } | { kind: "unknown" };
 
-function resolveSource(encoded: string): { url?: string; error?: string } {
+type Loaded = { url: string; document?: BundleDocument; failure?: Failure };
+
+// A bad address is remembered as a flag, not a sentence, so switching language
+// re-renders the message instead of leaving a stale one on screen.
+function resolveSource(encoded: string): { url?: string; invalid?: boolean } {
   try {
     const url = decodeSource(encoded);
     if (!/^https?:\/\//i.test(url)) throw new Error();
     return { url };
   } catch {
-    return { error: "The address does not contain a valid Base64URL-encoded bundle URL." };
+    return { invalid: true };
+  }
+}
+
+class HttpStatus extends Error {
+  constructor(readonly status: number) {
+    super(`The source responded with ${status}.`);
   }
 }
 
 export function Viewer({ encoded }: { encoded: string }) {
   const router = useRouter();
+  const { t } = useI18n();
   const resolved = useMemo(() => resolveSource(encoded), [encoded]);
   const url = resolved.url;
   const [loaded, setLoaded] = useState<Loaded>();
@@ -31,7 +43,7 @@ export function Viewer({ encoded }: { encoded: string }) {
 
     fetch(url)
       .then(async (response) => {
-        if (!response.ok) throw new Error(`The source responded with ${response.status}.`);
+        if (!response.ok) throw new HttpStatus(response.status);
         return parseBundleDocument(await response.text());
       })
       .then((document) => {
@@ -39,15 +51,13 @@ export function Viewer({ encoded }: { encoded: string }) {
       })
       .catch((reason: unknown) => {
         if (!active) return;
-        setLoaded({
-          url,
-          error:
-            reason instanceof TypeError
-              ? "Could not reach that URL. Check the address, and that the host allows cross-origin requests."
-              : reason instanceof Error
-                ? reason.message
-                : "Unable to load the bundle.",
-        });
+        const failure: Failure =
+          reason instanceof HttpStatus
+            ? { kind: "status", status: reason.status }
+            : reason instanceof TypeError
+              ? { kind: "network" }
+              : { kind: "unknown" };
+        setLoaded({ url, failure });
       });
 
     return () => {
@@ -56,7 +66,16 @@ export function Viewer({ encoded }: { encoded: string }) {
   }, [url]);
 
   const current = loaded?.url === url ? loaded : undefined;
-  const error = resolved.error ?? current?.error;
+  const failure = current?.failure;
+  const error = resolved.invalid
+    ? t("viewer.invalidAddress")
+    : failure?.kind === "status"
+      ? t("viewer.status", { status: failure.status })
+      : failure?.kind === "network"
+        ? t("viewer.network")
+        : failure
+          ? t("viewer.unknown")
+          : undefined;
   const document = current?.document;
 
   return (
@@ -69,17 +88,17 @@ export function Viewer({ encoded }: { encoded: string }) {
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
           <path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        Back
+        {t("viewer.back")}
       </button>
 
       {error && (
         <div className="notice error" role="alert">
-          <strong>Couldn’t load that bundle</strong>
+          <strong>{t("viewer.errorTitle")}</strong>
           <p>{error}</p>
         </div>
       )}
 
-      {url && !document && !error && <p className="loading">Loading bundle…</p>}
+      {url && !document && !error && <p className="loading">{t("viewer.loading")}</p>}
 
       {document?.kind === "page" && (
         <article className="md page" key={url}>
