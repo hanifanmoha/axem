@@ -2,23 +2,80 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Theme = "light" | "dark";
+type Mode = "light" | "dark";
+type Style = "simple" | "minimal" | "reading" | "brutal";
 
-const THEME_KEY = "axem:theme";
+const MODE_KEY = "axem:theme";
+const STYLE_KEY = "axem:style";
 
-function currentTheme(): Theme {
+const MODES: { value: Mode; label: string }[] = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+const STYLES: { value: Style; label: string }[] = [
+  { value: "simple", label: "Simple" },
+  { value: "minimal", label: "Minimalist" },
+  { value: "reading", label: "Reading Mode" },
+  { value: "brutal", label: "Neo Brutalism" },
+];
+
+function read(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function write(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // The choice still applies for this session.
+  }
+}
+
+function isMode(value: string | null | undefined): value is Mode {
+  return value === "light" || value === "dark";
+}
+
+function isStyle(value: string | null | undefined): value is Style {
+  return STYLES.some((style) => style.value === value);
+}
+
+function currentMode(): Mode {
   const set = document.documentElement.dataset.theme;
-  if (set === "light" || set === "dark") return set;
+  if (isMode(set)) return set;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function currentStyle(): Style {
+  const set = document.documentElement.dataset.style;
+  return isStyle(set) ? set : "simple";
 }
 
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>("light");
+  const [mode, setMode] = useState<Mode>("light");
+  const [style, setStyle] = useState<Style>("simple");
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setTheme(currentTheme());
+    setMode(currentMode());
+    setStyle(currentStyle());
+
+    // Without an explicit choice the app follows the system, including while
+    // the page stays open.
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const follow = (event: MediaQueryListEvent) => {
+      if (isMode(read(MODE_KEY))) return;
+      const next = event.matches ? "dark" : "light";
+      setMode(next);
+      document.documentElement.dataset.theme = next;
+    };
+    query.addEventListener("change", follow);
+    return () => query.removeEventListener("change", follow);
   }, []);
 
   useEffect(() => {
@@ -37,14 +94,16 @@ export function SettingsMenu() {
     };
   }, [open]);
 
-  function choose(next: Theme) {
-    setTheme(next);
+  function chooseMode(next: Mode) {
+    setMode(next);
     document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem(THEME_KEY, next);
-    } catch {
-      // The theme still applies for this session.
-    }
+    write(MODE_KEY, next);
+  }
+
+  function chooseStyle(next: Style) {
+    setStyle(next);
+    document.documentElement.dataset.style = next;
+    write(STYLE_KEY, next);
   }
 
   return (
@@ -66,18 +125,39 @@ export function SettingsMenu() {
       {open && (
         <div className="popover" role="dialog" aria-label="Settings">
           <h2>Appearance</h2>
-          <div className="segmented" role="radiogroup" aria-label="Theme">
-            {(["light", "dark"] as const).map((option) => (
+          <div className="segmented" role="radiogroup" aria-label="Color mode">
+            {MODES.map((option) => (
               <button
-                key={option}
+                key={option.value}
                 type="button"
                 role="radio"
-                aria-checked={theme === option}
-                onClick={() => choose(option)}
+                aria-checked={mode === option.value}
+                onClick={() => chooseMode(option.value)}
               >
-                {option === "light" ? "Light" : "Dark"}
+                {option.label}
               </button>
             ))}
+          </div>
+
+          <h2>Style</h2>
+          <div className="select">
+            <select
+              aria-label="Style"
+              value={style}
+              onChange={(event) => {
+                const next = event.target.value;
+                if (isStyle(next)) chooseStyle(next);
+              }}
+            >
+              {STYLES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </div>
         </div>
       )}

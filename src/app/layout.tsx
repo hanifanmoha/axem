@@ -20,7 +20,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("axem:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`,
+            __html: `try{var d=document.documentElement,t=localStorage.getItem("axem:theme");d.dataset.theme=t==="light"||t==="dark"?t:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";var s=localStorage.getItem("axem:style");if(s==="minimal"||s==="reading"||s==="brutal")d.dataset.style=s}catch(e){}`,
           }}
         />
       </head>
